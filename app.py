@@ -2,6 +2,8 @@ from flask import Flask, render_template, request, jsonify, redirect
 import pandas as pd
 import joblib
 from app_module.utils.xai import explain_model_prediction
+from app_module.utils.report import generate_professional_pdf
+import plotly.graph_objects as go
 
 app = Flask(__name__)
 
@@ -93,6 +95,53 @@ def api_predict():
             'success': False,
             'error': str(e)
         }), 400
+
+
+@app.route('/report', methods=['POST'])
+def report():
+    """Generate a professional PDF report for the given input (form or JSON)."""
+    try:
+        data = request.get_json(silent=True)
+        if data:
+            model_choice = data.get('model_choice', 'log_reg')
+            df_input = prepare_input(data)
+        else:
+            form = request.form
+            model_choice = form.get('model_choice', 'log_reg')
+            df_input = prepare_input(form)
+
+        pipeline = MODELS.get(model_choice, MODELS['log_reg'])
+
+        # predict
+        pred = pipeline.predict(df_input)[0]
+        prob = pipeline.predict_proba(df_input)[0][1] if hasattr(pipeline, 'predict_proba') else None
+
+        # explanation
+        explanation = explain_model_prediction(pipeline, df_input)
+
+        # build bar chart if possible
+        fig = None
+        if explanation and 'all_features' in explanation:
+            feats = [it['feature'] for it in explanation['all_features']]
+            vals = [it['shap_value'] for it in explanation['all_features']]
+            fig = go.Figure(go.Bar(x=vals, y=feats, orientation='h', marker_color=['#f56565' if v>=0 else '#38a169' for v in vals]))
+            fig.update_layout(margin=dict(l=200, r=20, t=20, b=20), height=800)
+
+        meta = {
+            'Model': model_choice,
+            'Prediction': str(int(pred)),
+            'Probability': f"{prob:.3f}" if prob is not None else 'N/A'
+        }
+
+        pdf = generate_professional_pdf('Rapport XAI - Prédiction', explanation, fig, meta)
+
+        return (pdf, 200, {
+            'Content-Type': 'application/pdf',
+            'Content-Disposition': 'attachment; filename="xai_report.pdf"'
+        })
+
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)}), 500
 
 
 # Enregistrer le dashboard modular

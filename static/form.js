@@ -379,6 +379,56 @@ function displayPredictionResult(data) {
     }
 
     resultContainer.scrollIntoView({ behavior: 'smooth' });
+
+    // Add professional 'Generate report' button
+    try {
+        let reportBtn = document.getElementById('generate-report-btn');
+        if (!reportBtn) {
+            reportBtn = document.createElement('button');
+            reportBtn.id = 'generate-report-btn';
+            reportBtn.textContent = '📄 Générer le rapport détaillé (PDF)';
+            reportBtn.className = 'btn-submit';
+            reportBtn.style.marginTop = '12px';
+            reportBtn.style.background = 'linear-gradient(135deg,#667eea 0%,#764ba2 100%)';
+            reportBtn.style.color = '#fff';
+            reportBtn.style.border = 'none';
+            reportBtn.style.padding = '10px 16px';
+            reportBtn.style.borderRadius = '8px';
+            reportBtn.style.cursor = 'pointer';
+            resultContainer.appendChild(reportBtn);
+
+            reportBtn.addEventListener('click', async () => {
+                reportBtn.disabled = true;
+                reportBtn.textContent = 'Génération en cours...';
+                const form = document.getElementById('cancerForm');
+                const formData = new FormData(form);
+                try {
+                    const resp = await fetch('/report', { method: 'POST', body: formData });
+                    if (resp.ok) {
+                        const blob = await resp.blob();
+                        const url = window.URL.createObjectURL(blob);
+                        const a = document.createElement('a');
+                        a.href = url;
+                        a.download = 'xai_report.pdf';
+                        document.body.appendChild(a);
+                        a.click();
+                        a.remove();
+                        window.URL.revokeObjectURL(url);
+                    } else {
+                        const text = await resp.text();
+                        UI.showAlert('Erreur génération rapport: ' + text, 'danger');
+                    }
+                } catch (e) {
+                    UI.showAlert('Erreur lors du téléchargement du rapport: ' + e.message, 'danger');
+                } finally {
+                    reportBtn.disabled = false;
+                    reportBtn.textContent = '📄 Générer le rapport détaillé (PDF)';
+                }
+            });
+        }
+    } catch (err) {
+        console.error('Erreur bouton rapport:', err);
+    }
 }
 
 // ========== ANIMATIONS ==========

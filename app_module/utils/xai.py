@@ -110,8 +110,36 @@ def explain_model_prediction(model: Any, df_input: pd.DataFrame, n_background: i
                     bg_trans = bg.values
                     input_trans = df_input.values
 
-            # try to get feature names after transformation
-            feature_names = _get_transformed_feature_names(preprocess, df_input.columns)
+                # try to get feature names after transformation
+                feature_names = _get_transformed_feature_names(preprocess, df_input.columns)
+
+                # Format feature names to be human-readable (e.g., one-hot -> Feature=Value)
+                def _pretty_name(n: str) -> str:
+                    s = str(n)
+                    # Remove common prefixes
+                    for p in ('preprocess__', 'preprocess_', 'onehot__', 'onehot_', 'onehot-', 'remainder__'):
+                        if s.startswith(p):
+                            s = s[len(p):]
+                            break
+
+                    # patterns like transformer__col_val or col_val
+                    if '__' in s:
+                        # keep content after first __
+                        s = s.split('__', 1)[1]
+
+                    # If there's a single underscore separating column and value
+                    if '_' in s:
+                        parts = s.split('_', 1)
+                        col = parts[0]
+                        val = parts[1].replace('_', ' ')
+                        return f"{col}={val}"
+
+                    return s
+
+                try:
+                    feature_names = [_pretty_name(n) for n in feature_names]
+                except Exception:
+                    pass
 
             # Choose explainer: prefer TreeExplainer for tree-based classifiers
             tree_types = (RandomForestClassifier, GradientBoostingClassifier, HistGradientBoostingClassifier, DecisionTreeClassifier)
