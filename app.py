@@ -10,6 +10,22 @@ app = Flask(__name__)
 def binary_transform(df):
     return df.applymap(lambda x: 1 if x == "Yes" else 0)
 
+# Ensure `binary_transform` is available under the `__main__` module name so
+# joblib/pickle can resolve references to `__main__.binary_transform` when
+# unpickling models that were saved from a script run as __main__.
+import sys, types
+try:
+    # Prefer attaching to existing __main__ module if present
+    main_mod = sys.modules.get('__main__')
+    if main_mod is None:
+        main_mod = types.ModuleType('__main__')
+        sys.modules['__main__'] = main_mod
+    setattr(main_mod, 'binary_transform', binary_transform)
+except Exception:
+    # Best-effort: if attaching fails, continue and let unpickle throw a clear error
+    pass
+
+# Load models after ensuring pickled dependencies are resolvable
 MODELS = {
     "log_reg": joblib.load("models/pipeline_logistic_regression.pkl"),
     "random_forest": joblib.load("models/pipeline_random_forest.pkl"),
