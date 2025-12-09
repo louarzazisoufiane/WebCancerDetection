@@ -238,22 +238,28 @@ gunicorn -w 4 -b 0.0.0.0:5000 wsgi:app
 
 ### Avec Docker (optionnel)
 
-Créer un `Dockerfile` :
+Créer un `Dockerfile` (exemple fourni dans le dépôt) et build/run :
 
-```dockerfile
-FROM python:3.10-slim
-WORKDIR /app
-COPY requirements.txt .
-RUN pip install -r requirements.txt
-COPY . .
-CMD ["gunicorn", "-w", "4", "-b", "0.0.0.0:5000", "wsgi:app"]
-```
-
-Construire et lancer :
 ```bash
-docker build -t cancer-app .
-docker run -p 5000:5000 cancer-app
+# Build the image (from repository root)
+docker build -t canc-app:latest .
+
+# Run the container and expose port 5000
+docker run --rm -p 5000:5000 -e XAI_MODE=legacy canc-app:latest
 ```
+
+Ou utilisez `docker-compose` (fichier `docker-compose.yml` fourni) :
+
+```bash
+docker-compose up --build
+```
+
+Notes sur `XAI_MODE` :
+
+- `XAI_MODE=legacy` — utilise une fonction wrapper autour de la pipeline (`predict_proba`) pour la génération d'explications SHAP (comportement historique).
+- `XAI_MODE=auto` — mode par défaut qui applique des heuristiques: utilise `TreeExplainer` pour les modèles à base d'arbres et applique `preprocess.transform()` pour fournir des arrays numériques à SHAP.
+
+Si la génération de PNG/PDF côté serveur échoue (Plotly/kaleido), envisagez de générer les graphiques côté client et d'envoyer les images encodées au serveur pour la création du PDF.
 
 ## 📊 Logging
 
