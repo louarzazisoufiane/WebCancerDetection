@@ -43,7 +43,13 @@ const UI = {
         const resultCard = document.getElementById('resultCard');
 
         if (introCard) introCard.classList.add('hidden');
-        if (resultCard) resultCard.classList.add('visible');
+        if (resultCard) {
+            resultCard.style.display = 'block'; // Ensure it's not display:none
+            // Small delay to allow display:block to apply before transition
+            setTimeout(() => {
+                resultCard.classList.add('visible');
+            }, 10);
+        }
     },
 
     resetResultView() {
@@ -89,6 +95,41 @@ const UI = {
             if (errorMsg) errorMsg.innerHTML = `<i class="fa-solid fa-circle-exclamation"></i> ${message}`;
         } else {
             input.classList.remove('error');
+        }
+    },
+
+    switchTab(tabName) {
+        // Buttons
+        document.querySelectorAll('.tab-btn').forEach(btn => {
+            btn.classList.remove('active');
+            btn.style.borderBottom = 'none';
+            btn.style.fontWeight = '500';
+            btn.style.color = 'var(--neutral-500)';
+
+            if (btn.dataset.tab === tabName) {
+                btn.classList.add('active');
+                btn.style.borderBottom = '2px solid var(--primary-color)';
+                btn.style.fontWeight = '600';
+                btn.style.color = 'var(--primary-color)';
+            }
+        });
+
+        // Content
+        const shapCont = document.getElementById('shap-container');
+        const limeCont = document.getElementById('lime-container');
+
+        if (tabName === 'shap') {
+            if (shapCont) shapCont.style.display = 'block';
+            if (limeCont) limeCont.style.display = 'none';
+        } else {
+            if (shapCont) shapCont.style.display = 'none';
+            if (limeCont) limeCont.style.display = 'block';
+
+            // Fix Plotly resize issue when unhiding
+            try {
+                const limePlot = document.getElementById('lime-mini-chart');
+                if (limePlot) Plotly.Plots.resize(limePlot);
+            } catch (e) { }
         }
     }
 };
@@ -210,15 +251,23 @@ function displayResults(data) {
     UI.animateProbability(prob);
 
     // SHAP / Explanation
-    renderExplanation(data.explanation);
+    // SHAP / Explanation
+    renderExplanation(data.explanation, 'shap');
+
+    // LIME
+    if (data.lime_explanation) {
+        console.log("LIME Data:", data.lime_explanation);
+        renderLimeExplanation(data.lime_explanation);
+    }
 
     // Show Report Button
     if (actions) actions.classList.remove('hidden');
     setupReportButton();
 }
 
-function renderExplanation(expl) {
-    const container = document.getElementById('explanation-block');
+function renderExplanation(expl, type = 'shap') {
+    const containerId = type === 'shap' ? 'shap-container' : 'lime-container';
+    const container = document.getElementById(containerId);
     if (!container) return;
 
     if (!expl || expl.error) {
@@ -233,8 +282,24 @@ function renderExplanation(expl) {
     const header = document.createElement('h4');
     header.style.fontSize = '0.95rem';
     header.style.marginBottom = '10px';
-    header.innerHTML = '<i class="fa-solid fa-list-check"></i> Facteurs Influents';
+    header.innerHTML = '<i class="fa-solid fa-list-check"></i> Facteurs Influents (Global)';
     container.appendChild(header);
+
+    // Legend
+    const legend = document.createElement('div');
+    legend.innerHTML = `
+        <div style="display:flex; gap:15px; font-size:0.8rem; margin-bottom:10px; color:var(--neutral-600);">
+            <div style="display:flex; align-items:center; gap:5px;">
+                <span style="width:10px; height:10px; background:#ef4444; display:inline-block; border-radius:50%;"></span>
+                Augmente le risque
+            </div>
+            <div style="display:flex; align-items:center; gap:5px;">
+                <span style="width:10px; height:10px; background:#10b981; display:inline-block; border-radius:50%;"></span>
+                Diminue le risque
+            </div>
+        </div>
+    `;
+    container.appendChild(legend);
 
     // Top Features List (Standardized)
     if (expl.top_features && Array.isArray(expl.top_features)) {
@@ -326,4 +391,101 @@ function setupReportButton() {
             newBtn.innerHTML = '<i class="fa-solid fa-file-pdf"></i> Télécharger le Rapport';
         }
     });
+}
+
+function renderLimeExplanation(limeData) {
+    const container = document.getElementById('lime-container');
+    if (!container) return;
+
+    container.innerHTML = '';
+
+    if (limeData.error) {
+        container.innerHTML = `<p class="text-center text-muted">Erreur LIME: ${limeData.error}</p>`;
+        return;
+    }
+
+    if (!limeData.explanation || !Array.isArray(limeData.explanation)) {
+        container.innerHTML = `<p class="text-center text-muted">Pas de données LIME</p>`;
+        return;
+    }
+
+    const explanation = limeData.explanation;
+
+    // Title
+    const header = document.createElement('h4');
+    header.style.fontSize = '0.95rem';
+    header.style.marginBottom = '10px';
+    header.innerHTML = '<i class="fa-solid fa-microscope"></i> Facteurs Locaux (LIME)';
+    container.appendChild(header);
+
+    // Legend
+    const legend = document.createElement('div');
+    legend.innerHTML = `
+        <div style="display:flex; gap:15px; font-size:0.8rem; margin-bottom:10px; color:var(--neutral-600);">
+            <div style="display:flex; align-items:center; gap:5px;">
+                <span style="width:10px; height:10px; background:#ef4444; display:inline-block; border-radius:50%;"></span>
+                Augmente le risque
+            </div>
+            <div style="display:flex; align-items:center; gap:5px;">
+                <span style="width:10px; height:10px; background:#3b82f6; display:inline-block; border-radius:50%;"></span>
+                Diminue le risque
+            </div>
+        </div>
+    `;
+    container.appendChild(legend);
+
+    // LIME Values List
+    const ul = document.createElement('ul');
+    ul.style.fontSize = '0.9rem';
+
+    // limeData.explanation is sorted by absolute value
+    explanation.slice(0, 5).forEach(f => {
+        const li = document.createElement('li');
+        li.style.marginBottom = '6px';
+        li.style.display = 'flex';
+        li.style.justifyContent = 'space-between';
+
+        const isRiskFactor = f.value > 0;
+        const color = isRiskFactor ? '#ef4444' : '#3b82f6';
+        const icon = isRiskFactor ? 'fa-arrow-up' : 'fa-arrow-down';
+
+        li.innerHTML = `
+            <span>${f.feature}</span>
+            <span style="color: ${color}; font-weight: 600;">
+                <i class="fa-solid ${icon}"></i> ${Math.abs(f.value).toFixed(4)}
+            </span>
+        `;
+        ul.appendChild(li);
+    });
+    container.appendChild(ul);
+
+    // Plotly Chart
+    const chartDiv = document.createElement('div');
+    chartDiv.id = 'lime-mini-chart';
+    chartDiv.style.marginTop = '15px';
+    chartDiv.style.height = '250px';
+    container.appendChild(chartDiv);
+
+    // Sort: most important at top (Plotly needs reverse order for h-bar)
+    // limeData.explanation is sorted descending by absolute value
+    // Let's take top 10
+    const top10 = explanation.slice(0, 10).reverse();
+
+    const names = top10.map(x => x.feature);
+    const values = top10.map(x => x.value);
+    const colors = values.map(v => v > 0 ? '#ef4444' : '#3b82f6'); // Red vs Blue for LIME convention
+
+    Plotly.newPlot(chartDiv, [{
+        x: values,
+        y: names,
+        type: 'bar',
+        orientation: 'h',
+        marker: { color: colors }
+    }], {
+        margin: { l: 150, r: 20, t: 0, b: 30 },
+        barmode: 'relative',
+        height: 250,
+        xaxis: { fixedrange: true },
+        yaxis: { fixedrange: true, automargin: true }
+    }, { displayModeBar: false });
 }

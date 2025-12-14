@@ -4,7 +4,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Prédiction Cancer de la Peau | AI Health Assistant</title>
+    <title>SkinCheck</title>
+    <link rel="icon"
+        href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🛡️</text></svg>">
 
     <!-- Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -31,28 +33,30 @@
                     <i class="fa-solid fa-user-doctor"></i>
                 </div>
                 <div class="brand-text">
-                    <h1>DermoIA Pro</h1>
+                    <h1>SkinCheck Vision</h1>
                     <p>Système expert d'aide au diagnostic dermatologique</p>
                 </div>
             </div>
 
             <div class="header-actions">
-                <a href="/image-analysis/" class="btn btn-secondary">
-                    <i class="fa-solid fa-camera"></i> Analyse Image
+                <a href="/image-analysis/" class="btn btn-secondary" style="border-top: 4px solid var(--danger-color);">
+                    <i class="fa-solid fa-camera" style="color: var(--danger-color);"></i> Analyse Image
                 </a>
-                <a href="/dashboard/" class="btn btn-secondary">
-                    <i class="fa-solid fa-chart-pie"></i> Dashboard
+                <a href="/dashboard/" class="btn btn-secondary" style="border-top: 4px solid var(--success-color);">
+                    <i class="fa-solid fa-chart-pie" style="color: var(--success-color);"></i> Dashboard
                 </a>
-                <a href="/admin/" class="btn btn-secondary">
-                    <i class="fa-solid fa-lock"></i> Admin
+                <a href="/admin/" class="btn btn-secondary" style="border-top: 4px solid var(--primary-color);">
+                    <i class="fa-solid fa-lock" style="color: var(--primary-color);"></i> Admin
                 </a>
             </div>
         </header>
 
+        <!-- Stats Overview Removed -->
+
         <!-- Main Grid -->
         <main class="content-grid">
 
-            <!-- Left Column: Input Form -->
+            <!-- Main Form Section -->
             <section class="form-section">
                 <div class="card card-accent-primary" id="formCard">
                     <div class="card-header">
@@ -65,228 +69,179 @@
 
                     <form id="cancerForm" method="POST" action="/api/predict">
 
-                        <!-- Step 1: Informations Générales -->
-                        <fieldset class="fieldset">
-                            <legend class="fieldset-legend">1. Profil Général</legend>
+                        <!-- Global Grid Container for Horizontal Layout -->
+                        <div class="grid-4">
 
-                            <div class="grid-2">
-                                <div class="form-group">
-                                    <label class="form-label" for="Sex">Sexe Biologique</label>
-                                    <div class="input-group">
-                                        <select id="Sex" name="Sex" class="form-control form-select">
-                                            <option value="Male">Homme</option>
-                                            <option value="Female">Femme</option>
-                                        </select>
-                                    </div>
-                                </div>
-
-                                <div class="form-group">
-                                    <label class="form-label" for="AgeCategory">Tranche d'âge</label>
-                                    <div class="input-group">
-                                        <select id="AgeCategory" name="AgeCategory" class="form-control form-select">
-                                            <option>18-24</option>
-                                            <option>25-29</option>
-                                            <option>30-34</option>
-                                            <option>35-39</option>
-                                            <option>40-44</option>
-                                            <option>45-49</option>
-                                            <option>50-54</option>
-                                            <option>55-59</option>
-                                            <option>60-64</option>
-                                            <option>65-69</option>
-                                            <option>70-74</option>
-                                            <option>75-79</option>
-                                            <option>80 or older</option>
-                                        </select>
-                                    </div>
-                                </div>
+                            <!-- Group 1: General Info -->
+                            <div class="form-group">
+                                <label class="form-label" for="Sex">Sexe</label>
+                                <select id="Sex" name="Sex" class="form-control form-select">
+                                    <option value="Male">Homme</option>
+                                    <option value="Female">Femme</option>
+                                </select>
                             </div>
 
-                            <div class="grid-2">
-                                <div class="form-group">
-                                    <label class="form-label" for="BMI">IMC (Masse Corporelle)</label>
-                                    <div class="input-group">
-                                        <input type="text" id="BMI" name="BMI" class="form-control"
-                                            placeholder="Ex: 24.5" required>
-                                        <span class="input-suffix">kg/m²</span>
-                                    </div>
-                                    <div class="error-msg" id="bmiError"><i class="fa-solid fa-circle-exclamation"></i>
-                                        Valeur invalide</div>
-                                </div>
-
-                                <div class="form-group">
-                                    <label class="form-label" for="Race">Origine Ethnique</label>
-                                    <div class="input-group">
-                                        <select id="Race" name="Race" class="form-control form-select">
-                                            <option>White</option>
-                                            <option>Black</option>
-                                            <option>Asian</option>
-                                            <option>Other</option>
-                                        </select>
-                                    </div>
-                                </div>
+                            <div class="form-group">
+                                <label class="form-label" for="AgeCategory">Âge</label>
+                                <select id="AgeCategory" name="AgeCategory" class="form-control form-select">
+                                    <option>18-24</option>
+                                    <option>25-29</option>
+                                    <option>30-34</option>
+                                    <option>35-39</option>
+                                    <option>40-44</option>
+                                    <option>45-49</option>
+                                    <option>50-54</option>
+                                    <option>55-59</option>
+                                    <option>60-64</option>
+                                    <option>65-69</option>
+                                    <option>70-74</option>
+                                    <option>75-79</option>
+                                    <option>80 or older</option>
+                                </select>
                             </div>
-                        </fieldset>
 
-                        <!-- Step 2: Mode de Vie -->
-                        <fieldset class="fieldset">
-                            <legend class="fieldset-legend">2. Habitudes de Vie</legend>
-
-                            <div class="grid-2">
-                                <div class="form-group">
-                                    <label class="form-label" for="Smoking">Tabagisme</label>
-                                    <select id="Smoking" name="Smoking" class="form-control form-select">
-                                        <option value="No">Non</option>
-                                        <option value="Yes">Oui</option>
-                                    </select>
-                                </div>
-
-                                <div class="form-group">
-                                    <label class="form-label" for="PhysicalActivity">Activité Physique</label>
-                                    <select id="PhysicalActivity" name="PhysicalActivity"
-                                        class="form-control form-select">
-                                        <option value="Yes">Oui</option>
-                                        <option value="No">Non</option>
-                                    </select>
+                            <div class="form-group">
+                                <label class="form-label" for="BMI">IMC</label>
+                                <div class="input-group">
+                                    <input type="text" id="BMI" name="BMI" class="form-control" placeholder="24.5"
+                                        required>
+                                    <span class="input-suffix">kg/m²</span>
                                 </div>
                             </div>
 
                             <div class="form-group">
-                                <label class="form-label" for="SleepTime">Sommeil Moyen (heures/nuit)</label>
-                                <div class="input-group">
-                                    <input type="number" id="SleepTime" name="SleepTime" class="form-control" value="7"
-                                        min="0" max="24">
-                                    <span class="input-suffix">h</span>
-                                </div>
-                            </div>
-                        </fieldset>
-
-                        <!-- Step 3: Antécédents Médicaux -->
-                        <fieldset class="fieldset">
-                            <legend class="fieldset-legend">3. Antécédents Médicaux</legend>
-
-                            <div class="grid-2">
-                                <div class="form-group">
-                                    <label class="form-label" for="GenHealth">État de Santé Général</label>
-                                    <select id="GenHealth" name="GenHealth" class="form-control form-select">
-                                        <option>Excellent</option>
-                                        <option>Very good</option>
-                                        <option>Good</option>
-                                        <option>Fair</option>
-                                        <option>Poor</option>
-                                    </select>
-                                </div>
-                                <div class="form-group">
-                                    <label class="form-label" for="DiffWalking">Difficulté à marcher</label>
-                                    <select id="DiffWalking" name="DiffWalking" class="form-control form-select">
-                                        <option value="No">Non</option>
-                                        <option value="Yes">Oui</option>
-                                    </select>
-                                </div>
+                                <label class="form-label" for="GenHealth">Santé Générale</label>
+                                <select id="GenHealth" name="GenHealth" class="form-control form-select">
+                                    <option>Excellent</option>
+                                    <option>Very good</option>
+                                    <option>Good</option>
+                                    <option>Fair</option>
+                                    <option>Poor</option>
+                                </select>
                             </div>
 
-                            <!-- Checkbox Grid for Conditions -->
-                            <div class="form-label" style="margin-top: 1rem;">Pathologies Connues :</div>
-                            <div class="grid-2"
-                                style="background: var(--neutral-50); padding: 1rem; border-radius: var(--radius-md); border: 1px solid var(--neutral-200);">
-
-                                <div class="form-group" style="margin-bottom:0.5rem;">
-                                    <label class="form-label" for="HeartDisease" style="font-weight:400;">Maladie
-                                        Cardiaque</label>
-                                    <select id="HeartDisease" name="HeartDisease"
-                                        class="form-control form-select form-control-sm">
-                                        <option value="No">Non</option>
-                                        <option value="Yes">Oui</option>
-                                    </select>
-                                </div>
-
-                                <div class="form-group" style="margin-bottom:0.5rem;">
-                                    <label class="form-label" for="Asthma" style="font-weight:400;">Asthme</label>
-                                    <select id="Asthma" name="Asthma" class="form-control form-select form-control-sm">
-                                        <option value="No">Non</option>
-                                        <option value="Yes">Oui</option>
-                                    </select>
-                                </div>
-
-                                <div class="form-group" style="margin-bottom:0.5rem;">
-                                    <label class="form-label" for="KidneyDisease" style="font-weight:400;">Maladie
-                                        Rénale</label>
-                                    <select id="KidneyDisease" name="KidneyDisease"
-                                        class="form-control form-select form-control-sm">
-                                        <option value="No">Non</option>
-                                        <option value="Yes">Oui</option>
-                                    </select>
-                                </div>
-
-                                <div class="form-group" style="margin-bottom:0.5rem;">
-                                    <label class="form-label" for="Stroke" style="font-weight:400;">AVC</label>
-                                    <select id="Stroke" name="Stroke" class="form-control form-select form-control-sm">
-                                        <option value="No">Non</option>
-                                        <option value="Yes">Oui</option>
-                                    </select>
-                                </div>
+                            <!-- Group 2: Lifestyle -->
+                            <div class="form-group">
+                                <label class="form-label" for="Smoking">Fumeur</label>
+                                <select id="Smoking" name="Smoking" class="form-control form-select">
+                                    <option value="No">Non</option>
+                                    <option value="Yes">Oui</option>
+                                </select>
                             </div>
 
-                            <div class="form-group" id="diabeticGroup" style="margin-top: 1rem;">
+                            <div class="form-group">
+                                <label class="form-label" for="PhysicalActivity">Sport</label>
+                                <select id="PhysicalActivity" name="PhysicalActivity" class="form-control form-select">
+                                    <option value="Yes">Oui</option>
+                                    <option value="No">Non</option>
+                                </select>
+                            </div>
+
+                            <div class="form-group">
+                                <label class="form-label" for="SleepTime">Sommeil (h)</label>
+                                <input type="number" id="SleepTime" name="SleepTime" class="form-control" value="7"
+                                    min="0" max="24">
+                            </div>
+
+                            <div class="form-group">
+                                <label class="form-label" for="DiffWalking">Difficulté Marche</label>
+                                <select id="DiffWalking" name="DiffWalking" class="form-control form-select">
+                                    <option value="No">Non</option>
+                                    <option value="Yes">Oui</option>
+                                </select>
+                            </div>
+
+                            <!-- Group 3: Pathologies (Compact) -->
+                            <div class="form-group">
+                                <label class="form-label" for="HeartDisease">Cœur</label>
+                                <select id="HeartDisease" name="HeartDisease" class="form-control form-select">
+                                    <option value="No">Non</option>
+                                    <option value="Yes">Oui</option>
+                                </select>
+                            </div>
+
+                            <div class="form-group">
+                                <label class="form-label" for="Asthma">Asthme</label>
+                                <select id="Asthma" name="Asthma" class="form-control form-select">
+                                    <option value="No">Non</option>
+                                    <option value="Yes">Oui</option>
+                                </select>
+                            </div>
+
+                            <div class="form-group">
+                                <label class="form-label" for="KidneyDisease">Rein</label>
+                                <select id="KidneyDisease" name="KidneyDisease" class="form-control form-select">
+                                    <option value="No">Non</option>
+                                    <option value="Yes">Oui</option>
+                                </select>
+                            </div>
+
+                            <div class="form-group">
+                                <label class="form-label" for="Stroke">AVC</label>
+                                <select id="Stroke" name="Stroke" class="form-control form-select">
+                                    <option value="No">Non</option>
+                                    <option value="Yes">Oui</option>
+                                </select>
+                            </div>
+
+                            <!-- Group 4: Other -->
+                            <div class="form-group">
                                 <label class="form-label" for="Diabetic">Diabète</label>
                                 <select id="Diabetic" name="Diabetic" class="form-control form-select">
                                     <option value="No">Non</option>
                                     <option value="Yes">Oui</option>
-                                    <option value="No, borderline diabetes">Pré-diabète</option>
-                                    <option value="Yes (during pregnancy)">Oui (Grossesse)</option>
+                                    <option value="No, borderline">Pré-diabète</option>
+                                    <option value="Yes (pregnancy)">Oui (Grossesse)</option>
                                 </select>
                             </div>
 
-                            <div class="grid-2" style="margin-top: 1rem;">
-                                <div class="form-group">
-                                    <label class="form-label" for="PhysicalHealth">Jours malade (Physique / 30j)</label>
-                                    <input type="number" id="PhysicalHealth" name="PhysicalHealth" class="form-control"
-                                        value="0" min="0" max="30">
-                                </div>
-                                <div class="form-group">
-                                    <label class="form-label" for="MentalHealth">Jours malade (Mental / 30j)</label>
-                                    <input type="number" id="MentalHealth" name="MentalHealth" class="form-control"
-                                        value="0" min="0" max="30">
-                                </div>
-                            </div>
-                        </fieldset>
-
-                        <!-- Step 4: Configuration AI -->
-                        <fieldset class="fieldset">
-                            <legend class="fieldset-legend">4. Configuration Analyse</legend>
                             <div class="form-group">
-                                <label class="form-label" for="model_choice">Modèle Prédictif</label>
-                                <div class="input-group">
-                                    <select id="model_choice" name="model_choice" class="form-control form-select"
-                                        style="font-weight: 600; color: var(--primary-dark);">
-                                        <option value="log_reg">Régression Logistique (Rapide/Interprétable)</option>
-                                        <option value="random_forest">Random Forest (Robuste)</option>
-                                        <option value="gradient_boosting">Gradient Boosting (Haute Précision)</option>
-                                        <option value="knn">K-Nearest Neighbors</option>
-                                    </select>
-                                </div>
+                                <label class="form-label" for="PhysicalHealth">Jours Malade (Phys)</label>
+                                <input type="number" id="PhysicalHealth" name="PhysicalHealth" class="form-control"
+                                    value="0" min="0" max="30">
                             </div>
-                        </fieldset>
 
-                        <button type="submit" class="btn btn-primary btn-full">
-                            <i class="fa-solid fa-microscope"></i> Lancer l'Analyse
-                        </button>
+                            <div class="form-group">
+                                <label class="form-label" for="MentalHealth">Jours Malade (Men)</label>
+                                <input type="number" id="MentalHealth" name="MentalHealth" class="form-control"
+                                    value="0" min="0" max="30">
+                            </div>
+
+                            <div class="form-group">
+                                <label class="form-label" for="Race">Race</label>
+                                <select id="Race" name="Race" class="form-control form-select">
+                                    <option>White</option>
+                                    <option>Black</option>
+                                    <option>Asian</option>
+                                    <option>Other</option>
+                                </select>
+                            </div>
+
+                        </div> <!-- End grid-4 -->
+
+                        <div style="margin-top: 1.5rem; display: flex; justify-content: flex-end;">
+                            <button type="submit" class="btn btn-primary"
+                                style="padding: 0.75rem 3rem; font-size: 1.1rem;">
+                                <i class="fa-solid fa-microscope"></i> Lancer l'Analyse
+                            </button>
+                        </div>
                     </form>
                 </div>
             </section>
 
-            <!-- Right Column: Results (Sticky) -->
-            <aside class="result-section">
-                <!-- Placeholder for Results -->
-                <div id="resultCard" class="result-card">
+            <!-- Result Section - Now Horizontal at Bottom -->
+            <section class="result-section" style="margin-top: 2rem;">
+                <div id="resultCard" class="result-card"
+                    style="width: 100%; max-width: 800px; margin: 0 auto; display: none;">
                     <div class="result-header">
                         <h3 class="result-title">Résultat de l'Analyse</h3>
                         <div id="resultStatus" class="prediction-badge safe">En Attente</div>
                     </div>
 
-                    <div class="result-body">
+                    <div class="result-body"
+                        style="display: flex; gap: 2rem; align-items: center; justify-content: center; flex-wrap: wrap;">
                         <!-- Probability Meter -->
-                        <div class="probability-meter">
+                        <div class="probability-meter" style="margin: 0;">
                             <svg viewBox="0 0 36 36" class="circular-chart">
                                 <path class="circle-bg"
                                     d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831">
@@ -302,32 +257,50 @@
                         </div>
 
                         <!-- SHAP Explanation Area -->
-                        <div id="explanation-block" class="explanation-box">
-                            <p style="text-align: center; color: var(--neutral-400); font-style: italic;">
-                                Les détails de l'analyse apparaîtront ici.
-                            </p>
-                        </div>
+                        <!-- SHAP Explanation Area -->
+                        <div id="explanation-block" class="explanation-box" style="flex: 1; min-width: 300px;">
 
-                        <!-- Actions -->
-                        <div id="resultActions" class="mt-4 hidden" style="margin-top: 1.5rem;">
-                            <button id="generate-report-btn" class="btn btn-accent btn-full">
-                                <i class="fa-solid fa-file-pdf"></i> Télécharger le Rapport
-                            </button>
+                            <!-- Tabs -->
+                            <div class="xai-tabs"
+                                style="display: flex; gap: 10px; margin-bottom: 15px; border-bottom: 1px solid var(--neutral-200);">
+                                <button class="tab-btn active" data-tab="shap" onclick="UI.switchTab('shap')"
+                                    style="padding: 8px 16px; border: none; background: none; font-weight: 600; color: var(--primary-color); border-bottom: 2px solid var(--primary-color); cursor: pointer;">
+                                    SHAP (Global)
+                                </button>
+                                <button class="tab-btn" data-tab="lime" onclick="UI.switchTab('lime')"
+                                    style="padding: 8px 16px; border: none; background: none; font-weight: 500; color: var(--neutral-500); cursor: pointer;">
+                                    LIME (Local)
+                                </button>
+                            </div>
+
+                            <!-- SHAP Container -->
+                            <div id="shap-container">
+                                <p style="text-align: center; color: var(--neutral-400); font-style: italic;">
+                                    Les détails SHAP apparaîtront ici.
+                                </p>
+                            </div>
+
+                            <!-- LIME Container -->
+                            <div id="lime-container" style="display: none;">
+                                <p style="text-align: center; color: var(--neutral-400); font-style: italic;">
+                                    Les détails LIME apparaîtront ici.
+                                </p>
+                            </div>
+
                         </div>
+                    </div>
+
+                    <!-- Actions -->
+                    <div id="resultActions" class="mt-4 hidden"
+                        style="padding: 1.5rem; border-top: 1px solid var(--neutral-200); text-align: center;">
+                        <button id="generate-report-btn" class="btn btn-accent" style="min-width: 250px;">
+                            <i class="fa-solid fa-file-pdf"></i> Télécharger le Rapport
+                        </button>
                     </div>
                 </div>
 
-                <!-- Intro Card (Visible initially, hidden on result) -->
-                <div id="introCard" class="card"
-                    style="border: 2px dashed var(--neutral-300); background: transparent; text-align: center; padding: 3rem 1rem;">
-                    <i class="fa-solid fa-user-shield"
-                        style="font-size: 3rem; color: var(--neutral-300); margin-bottom: 1rem;"></i>
-                    <h3 style="color: var(--neutral-500); font-size: 1.2rem;">Prêt pour l'analyse</h3>
-                    <p style="font-size: 0.9rem;">Remplissez le formulaire patient à gauche et lancez l'analyse pour
-                        voir les résultats apparaître ici en temps réel.</p>
-                </div>
-
-            </aside>
+                <!-- Intro Card replaced by simple text if needed, or hidden -->
+            </section>
 
         </main>
     </div>

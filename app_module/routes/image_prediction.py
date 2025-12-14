@@ -75,9 +75,16 @@ def predict_image():
         # We can define a threshold, e.g., 0.5
         is_malignant = prediction_prob > 0.5
         
+        # Calculate percentages
+        malignancy_prob_percent = float(prediction_prob) * 100
+        benign_prob_percent = (1 - float(prediction_prob)) * 100
+        
         result = {
             'probability': float(prediction_prob),
+            'malignancy_probability_percent': malignancy_prob_percent,
+            'benign_probability_percent': benign_prob_percent,
             'prediction': 'Malignant' if is_malignant else 'Benign',
+            'label': 'Maligne' if is_malignant else 'Bénigne', # French label
             'confidence': float(prediction_prob if is_malignant else 1 - prediction_prob) * 100
         }
         

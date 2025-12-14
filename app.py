@@ -1,7 +1,7 @@
 from flask import Flask, render_template, request, jsonify, redirect, send_from_directory
 import pandas as pd
 import joblib
-from app_module.utils.xai import explain_model_prediction
+from app_module.utils.xai import explain_model_prediction, explain_model_prediction_lime
 from app_module.utils.report import generate_professional_pdf
 from app_module.utils.database import db
 from app_module.utils.certificate import generate_certificate_from_result
@@ -105,6 +105,12 @@ def api_predict():
         except Exception as e:
             explanation = {'error': f'Failed to compute explanation: {str(e)}'}
 
+        # Compute LIME explanation
+        try:
+            lime_explanation = explain_model_prediction_lime(pipeline, df_input)
+        except Exception as e:
+            lime_explanation = {'error': f'Failed to compute LIME: {str(e)}'}
+
         # Sauvegarder le test dans la base de données
         test_id = None
         certificate_path = None
@@ -155,6 +161,7 @@ def api_predict():
             'probability': float(prob),
             'model': model_choice,
             'explanation': explanation,
+            'lime_explanation': lime_explanation,
             'test_id': test_id,
             'certificate_path': certificate_path
         })

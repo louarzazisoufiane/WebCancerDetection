@@ -4,7 +4,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Tests Enregistrés | Admin DermoIA</title>
+    <title>Administration | SkinCheck Vision</title>
+    <link rel="icon"
+        href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🛡️</text></svg>">
 
     <!-- Fonts -->
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
@@ -18,9 +20,10 @@
         <!-- Header -->
         <header class="main-header">
             <div class="brand">
+                <div class="brand-icon"><i class="fa-solid fa-shield-halved"></i></div>
                 <div class="brand-text">
-                    <h1><i class="fa-solid fa-database brand-icon" style="font-size:1.8rem;"></i> Tests Enregistrés</h1>
-                    <p>Total: {{ total_count }} analyses</p>
+                    <h1 style="font-size: 1.5rem; margin: 0;">SkinCheck Vision <small
+                            style="font-size: 0.9rem; font-weight: 400; opacity: 0.7;">| Admin</small></h1>
                 </div>
             </div>
 
@@ -34,6 +37,58 @@
                 </a>
             </div>
         </header>
+
+        <!-- Stats Overview -->
+        <div class="stat-grid"
+            style="display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 1.5rem; margin-bottom: 2rem;">
+            <!-- Card 1: Total -->
+            <div class="card card-accent-primary"
+                style="display: flex; align-items: center; gap: 1rem; padding: 1.5rem;">
+                <div
+                    style="width: 50px; height: 50px; background: var(--primary-light); color: var(--primary-color); border-radius: var(--radius-md); display: flex; align-items: center; justify-content: center; font-size: 1.5rem;">
+                    <i class="fa-solid fa-users"></i>
+                </div>
+                <div>
+                    <h3 style="font-size: 0.9rem; color: var(--neutral-500); margin: 0; font-weight: 500;">Total
+                        Analyses</h3>
+                    <span style="font-size: 2rem; font-weight: 700; color: var(--neutral-900);">{{ total_count }}</span>
+                </div>
+            </div>
+
+            <!-- Card 2: Risques -->
+            <div class="card card-accent-danger"
+                style="display: flex; align-items: center; gap: 1rem; padding: 1.5rem;">
+                <div
+                    style="width: 50px; height: 50px; background: var(--danger-bg); color: var(--danger-color); border-radius: var(--radius-md); display: flex; align-items: center; justify-content: center; font-size: 1.5rem;">
+                    <i class="fa-solid fa-triangle-exclamation"></i>
+                </div>
+                <div>
+                    <h3 style="font-size: 0.9rem; color: var(--neutral-500); margin: 0; font-weight: 500;">Risques
+                        Détectés</h3>
+                    <span style="font-size: 2rem; font-weight: 700; color: var(--danger-color);">{{ risk_count }}</span>
+                </div>
+            </div>
+
+            <!-- Card 3: Taux -->
+            <div class="card card-accent-warning"
+                style="display: flex; align-items: center; gap: 1rem; padding: 1.5rem;">
+                <div
+                    style="width: 50px; height: 50px; background: var(--warning-bg); color: var(--warning-color); border-radius: var(--radius-md); display: flex; align-items: center; justify-content: center; font-size: 1.5rem;">
+                    <i class="fa-solid fa-chart-line"></i>
+                </div>
+                <div>
+                    <h3 style="font-size: 0.9rem; color: var(--neutral-500); margin: 0; font-weight: 500;">Taux de
+                        Risque</h3>
+                    <span style="font-size: 2rem; font-weight: 700; color: var(--warning-text);">
+                        {% if total_count > 0 %}
+                        {{ "%.1f"|format((risk_count / total_count) * 100) }}%
+                        {% else %}
+                        0%
+                        {% endif %}
+                    </span>
+                </div>
+            </div>
+        </div>
 
         {% if tests %}
         <div class="content-grid" style="grid-template-columns: 1fr;"> <!-- Single column for list -->

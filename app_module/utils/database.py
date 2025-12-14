@@ -186,6 +186,17 @@ class TestDatabase:
         conn.close()
         
         return result['count'] if result else 0
+    
+    def get_risk_count(self) -> int:
+        """Obtenir le nombre de tests avec risque détecté (prediction=1)"""
+        conn = self.get_connection()
+        cursor = conn.cursor()
+        
+        cursor.execute('SELECT COUNT(*) as count FROM tests WHERE prediction = 1')
+        result = cursor.fetchone()
+        conn.close()
+        
+        return result['count'] if result else 0
 
 
 # Instance globale

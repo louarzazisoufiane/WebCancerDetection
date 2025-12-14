@@ -69,6 +69,7 @@ def tests_list():
         else:
             tests = db.get_all_tests(limit=per_page, offset=offset)
             total_count = db.get_test_count()
+            risk_count = db.get_risk_count()
         
         total_pages = (total_count + per_page - 1) // per_page if total_count > 0 else 1
         
@@ -77,7 +78,8 @@ def tests_list():
             tests=tests,
             current_page=page,
             total_pages=total_pages,
-            total_count=total_count
+            total_count=total_count,
+            risk_count=risk_count if 'risk_count' in locals() else 0
         )
     except Exception as e:
         print(f"Erreur dans tests_list: {e}")
@@ -88,7 +90,8 @@ def tests_list():
             tests=[],
             current_page=1,
             total_pages=1,
-            total_count=0
+            total_count=0,
+            risk_count=0
         )
 
 

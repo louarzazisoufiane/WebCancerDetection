@@ -10,6 +10,8 @@ from sklearn.ensemble import RandomForestClassifier, GradientBoostingClassifier,
 from sklearn.tree import DecisionTreeClassifier
 from sklearn.pipeline import Pipeline
 from sklearn.compose import ColumnTransformer
+import lime
+import lime.lime_tabular
 from app_module.config.settings import Config
 
 
@@ -356,3 +358,144 @@ def explain_model_prediction(model: Any, df_input: pd.DataFrame, n_background: i
     except Exception as e:
         import traceback
         return {"error": f"Erreur SHAP: {str(e)}\n{traceback.format_exc()}"}
+
+
+def explain_model_prediction_lime(model: Any, df_input: pd.DataFrame, n_samples: int = 5000) -> Dict[str, Any]:
+    """
+    Retourne les contributions LIME pour une prédiction.
+    """
+    try:
+        # 1) CHARGEMENT DU TRAIN SET (LIME a besoin de stats sur le training set)
+        try:
+            df_full = pd.read_csv(Config.DATASET_PATH)
+            # S'assurer que les colonnes correspondent
+            train_data = df_full[df_input.columns]
+        except:
+            # Fallback
+            train_data = df_input.copy() # Très mauvais pour LIME mais évite le crash
+
+        # 2) GESTION DU PIPELINE ET PREPROCESSING
+        # LIME a besoin de travailler sur des arrays numpy si c'est un modèle sklearn standard,
+        # ou on peut lui passer le pipeline complet s'il gère les colonnes brutes.
+        # Ici nos pipelines gèrent les DataFrames bruts via 'preprocess'.
+        
+        # On va utiliser LIME sur les données BRUTES (avant preprocessing)
+        # car c'est plus interprétable pour l'utilisateur.
+        
+        # Convertir les colonnes catégorielles en indices pour LIME (si besoin) ou laisser LIME gérer
+        # LimeTabularExplainer gère les catégorielles si on lui dit lesquelles c'est.
+        
+        categorical_features = []
+        categorical_names = {}
+        for idx, col in enumerate(train_data.columns):
+            if train_data[col].dtype == 'object':
+                categorical_features.append(idx)
+                # On doit encoder les valeurs pour LIME
+                # Pour simplifier ici, on va laisser LIME se débrouiller ou
+                # convertir temporairement en label encoding pour fit l'explainer
+                pass
+
+        # NOTE: LIME est complexe à setup parfaitement avec des pipelines complexes.
+        # Approche simplifiée: On passe le train_data tel quel, mais LIME attend du numpy souvent.
+        
+        # Convert to numpy for LIME
+        train_data_np = train_data.values
+        input_np = df_input.values[0]
+
+        # Fonction de prédiction probabiliste custom
+        def predict_proba_fn(arr):
+            # arr est un numpy array de (n_samples, n_features)
+            # Reconvertir en DataFrame pour le pipeline
+            df = pd.DataFrame(arr, columns=df_input.columns)
+            
+            # Restaurer les types (LIME convertit souvent en float)
+            # Ceci est critique car le pipeline attend des strings pour les catégorielles
+            for col in df_input.columns:
+                if df_input[col].dtype == 'object':
+                     # Essayer de mapper les floats vers les valeurs originales si on avait encodé...
+                     # C'est là que ça coince souvent.
+                     # Simplification: SI le pipeline plante sur des types, on a un souci.
+                     pass
+            
+            return model.predict_proba(df)
+
+        # Pour faire fonctionner LIME proprement avec des features string/catégorielles sans prise de tête:
+        # On va créer un explainer qui 'apprend' sur le training set brut.
+        # MAIS LimeTabularExplainer attend que les catégorielles soient des entiers.
+        
+        # ==> STRATÉGIE ROBUSTE:
+        # Encoder les strings en entiers pour LIME, et décoder dans la predict_fn.
+        
+        transformers = {} # col_idx -> LabelEncoder
+        from sklearn.preprocessing import LabelEncoder
+        
+        train_encoded = train_data.copy()
+        
+        for idx, col in enumerate(train_data.columns):
+            if train_data[col].dtype == 'object':
+                le = LabelEncoder()
+                # Fit sur train + input pour être sûr d'avoir toutes les classes
+                combined = pd.concat([train_data[col], df_input[col]])
+                le.fit(combined.astype(str))
+                
+                train_encoded[col] = le.transform(train_data[col].astype(str))
+                transformers[idx] = le
+            
+        # Créer l'explainer
+        explainer = lime.lime_tabular.LimeTabularExplainer(
+            train_encoded.values,
+            feature_names=list(train_data.columns),
+            class_names=['Sain', 'Risque'],
+            categorical_features=list(transformers.keys()),
+            mode='classification',
+            discretize_continuous=True
+        )
+
+        # Encoder l'input
+        input_encoded = df_input.copy()
+        for idx, le in transformers.items():
+            name = df_input.columns[idx]
+            input_encoded[name] = le.transform(df_input[name].astype(str))
+            
+        # Wrapper de prédiction qui décode
+        def custom_predict(np_array):
+            # np_array: shape (n, n_features) ints/floats
+            df_temp = pd.DataFrame(np_array, columns=train_data.columns)
+            
+            # Décoder
+            for idx, le in transformers.items():
+                name = train_data.columns[idx]
+                # LIME perturbe en float, on arrondi
+                vals = df_temp[name].round().astype(int)
+                # Clip pour éviter erreurs d'index
+                vals = vals.clip(0, len(le.classes_) - 1)
+                df_temp[name] = le.inverse_transform(vals)
+                
+            return model.predict_proba(df_temp)
+
+        # Expliquer
+        exp = explainer.explain_instance(
+            input_encoded.values[0],
+            custom_predict,
+            num_features=10,
+            num_samples=n_samples
+        )
+        
+        # Formater
+        c = exp.as_list()
+        # c est [(feature_cond, contribution), ...]
+        
+        structured = []
+        for feature_name, value in c:
+            structured.append({
+                "feature": feature_name,
+                "value": float(value),
+                "is_risk": value > 0
+            })
+            
+        return {"explanation": structured}
+
+    except Exception as e:
+        import traceback
+        traceback.print_exc()
+        return {"error": f"Erreur LIME: {str(e)}"}
