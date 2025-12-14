@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="fr">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Connexion Admin | DermoIA Pro</title>
+    <!-- Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+
+<body style="align-items: center; justify-content: center; background: var(--neutral-100);">
+
+    <div class="card"
+        style="width: 100%; max-width: 400px; box-shadow: var(--shadow-xl); border-top: 5px solid var(--primary-color);">
+        <div class="card-header" style="text-align: center; border-bottom: none; padding-bottom: 0;">
+            <div style="font-size: 3rem; margin-bottom: 1rem; color: var(--primary-color);">
+                <i class="fa-solid fa-user-shield"></i>
+            </div>
+            <h1 style="font-size: 1.5rem; margin-bottom: 0.5rem;">Administration</h1>
+            <p style="font-size: 0.9rem; color: var(--neutral-500);">Accès sécurisé réservé</p>
+        </div>
+
+        {% if error %}
+        <div class="alert alert-danger" style="margin-top: 1rem;">
+            <i class="fa-solid fa-circle-exclamation"></i> {{ error }}
+        </div>
+        {% endif %}
+
+        <form method="POST" style="margin-top: 1.5rem;">
+            <div class="form-group">
+                <label class="form-label" for="password">Mot de passe</label>
+                <div class="input-group">
+                    <input type="password" id="password" name="password" class="form-control" required autofocus
+                        placeholder="••••••••">
+                    <span class="input-suffix"><i class="fa-solid fa-key"></i></span>
+                </div>
+            </div>
+            <button type="submit" class="btn btn-primary btn-full">
+                Se connecter <i class="fa-solid fa-arrow-right" style="margin-left: 8px;"></i>
+            </button>
+        </form>
+
+        <div
+            style="text-align: center; margin-top: 1.5rem; padding-top: 1.5rem; border-top: 1px solid var(--neutral-100);">
+            <a href="/" class="btn btn-secondary btn-sm" style="font-size: 0.85rem;">
+                <i class="fa-solid fa-house"></i> Retour à l'accueil
+            </a>
+        </div>
+    </div>
+
+</body>
+
+</html>

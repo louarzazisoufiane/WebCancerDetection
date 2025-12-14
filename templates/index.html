@@ -1,188 +1,339 @@
 <!DOCTYPE html>
 <html lang="fr">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Prédiction Cancer de la Peau</title>
+    <title>Prédiction Cancer de la Peau | AI Health Assistant</title>
+
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+    <!-- Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <!-- Custom CSS -->
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+
+    <!-- Plotly -->
+    <script src="https://cdn.plot.ly/plotly-2.20.0.min.js"></script>
 </head>
+
 <body>
-    <div class="container">
-        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
-            <h1>🩺 Prédiction du Cancer de la Peau</h1>
-            <a href="/dashboard/" class="btn-dashboard" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 12px 24px; border-radius: 8px; text-decoration: none; font-weight: 600; transition: all 0.3s ease; box-shadow: 0 4px 6px rgba(102, 126, 234, 0.4);">
-                📊 Aller au Dashboard
-            </a>
-        </div>
-        <p style="text-align: center; color: #718096; margin-bottom: 30px;">
-            Analysez vos données de santé et obtenez une prédiction instantanée
-        </p>
-        <form id="cancerForm" method="POST" action="/api/predict">
-            <div class="form-group">
-                <label for="BMI">BMI:</label>
-                <input type="text" id="BMI" name="BMI" required>
-                <small class="error" id="bmiError"></small>
-            </div>
 
-            <div class="form-group">
-                <label for="Sex">Sexe:</label>
-                <select id="Sex" name="Sex">
-                    <option>Male</option>
-                    <option>Female</option>
-                </select>
-            </div>
-
-            <div class="form-group">
-                <label for="Smoking">Fumeur (Smoking):</label>
-                <select id="Smoking" name="Smoking">
-                    <option>Yes</option>
-                    <option>No</option>
-                </select>
-            </div>
-
-            <div class="form-group">
-                <label for="PhysicalActivity">Activité Physique:</label>
-                <select id="PhysicalActivity" name="PhysicalActivity">
-                    <option>Yes</option>
-                    <option>No</option>
-                </select>
-            </div>
-
-            <div class="form-group">
-                <label for="HeartDisease">Heart Disease:</label>
-                <select id="HeartDisease" name="HeartDisease">
-                    <option>Yes</option>
-                    <option>No</option>
-                </select>
-            </div>
-
-            <div class="form-group">
-                <label for="AgeCategory">Age Category:</label>
-                <select id="AgeCategory" name="AgeCategory">
-                    <option>18-24</option><option>25-29</option><option>30-34</option>
-                    <option>35-39</option><option>40-44</option><option>45-49</option>
-                    <option>50-54</option><option>55-59</option><option>60-64</option>
-                    <option>65-69</option><option>70-74</option><option>75-79</option>
-                    <option>80 or older</option>
-                </select>
-            </div>
-
-            <div class="form-group">
-                <label for="GenHealth">GenHealth:</label>
-                <select id="GenHealth" name="GenHealth">
-                    <option>Excellent</option>
-                    <option>Very good</option>
-                    <option>Good</option>
-                    <option>Fair</option>
-                    <option>Poor</option>
-                </select>
-            </div>
-
-            <div class="form-group">
-                <label for="Diabetic">Diabetic:</label>
-                <select id="Diabetic" name="Diabetic">
-                    <option>Yes</option>
-                    <option>No</option>
-                </select>
-            </div>
-
-            <div class="form-group">
-                <label for="Stroke">Stroke:</label>
-                <select id="Stroke" name="Stroke">
-                    <option>Yes</option>
-                    <option>No</option>
-                </select>
-            </div>
-
-            <div class="form-group">
-                <label for="Asthma">Asthma:</label>
-                <select id="Asthma" name="Asthma">
-                    <option>Yes</option>
-                    <option>No</option>
-                </select>
-            </div>
-
-            <div class="form-group">
-                <label for="KidneyDisease">KidneyDisease:</label>
-                <select id="KidneyDisease" name="KidneyDisease">
-                    <option>Yes</option>
-                    <option>No</option>
-                </select>
-            </div>
-
-            <div class="form-group">
-                <label for="Race">Race:</label>
-                <select id="Race" name="Race">
-                    <option>White</option>
-                    <option>Black</option>
-                    <option>Asian</option>
-                    <option>Other</option>
-                </select>
-            </div>
-
-            <div class="form-group">
-                <label for="SleepTime">Sleep Time (hours):</label>
-                <input type="number" id="SleepTime" name="SleepTime" value="7" min="0" max="24">
-            </div>
-
-            <div class="form-group">
-                <label for="PhysicalHealth">PhysicalHealth (0-30):</label>
-                <input type="number" id="PhysicalHealth" name="PhysicalHealth" value="0" min="0" max="30">
-            </div>
-
-            <div class="form-group">
-                <label for="MentalHealth">MentalHealth (0-30):</label>
-                <input type="number" id="MentalHealth" name="MentalHealth" value="0" min="0" max="30">
-            </div>
-
-            <div class="form-group">
-                <label for="DiffWalking">DiffWalking:</label>
-                <select id="DiffWalking" name="DiffWalking">
-                    <option>Yes</option>
-                    <option>No</option>
-                </select>
-            </div>
-
-            <div class="form-group">
-                <label for="model_choice">Modèle :</label>
-                <select id="model_choice" name="model_choice">
-                    <option value="log_reg">Logistic Regression</option>
-                    <option value="random_forest">Random Forest</option>
-                    <option value="gradient_boosting">Gradient Boosting</option>
-                    <option value="knn">KNN</option>
-                </select>
-            </div>
-
-            <button type="submit" class="btn-submit">🔍 Analyser mes données</button>
-        </form>
-
-        {% if result %}
-            <div class="result-container">
-                <div class="result-title">📊 Résultat de l'Analyse</div>
-                {% if result.prediction == 1 or result.prediction == 'Yes' %}
-                    <div class="prediction-result prediction-positive">
-                        ⚠️ RISQUE DÉTECTÉ
-                    </div>
-                {% else %}
-                    <div class="prediction-result prediction-negative">
-                        ✓ AUCUN RISQUE IDENTIFIÉ
-                    </div>
-                {% endif %}
-                <div class="prediction-probability">
-                    <strong>Confiance du modèle :</strong> 
-                    <span style="color: var(--primary-color); font-weight: bold;">
-                        {{ "%.2f"|format(result.probability * 100) }}%
-                    </span>
+    <div class="app-container">
+        <!-- Header -->
+        <header class="main-header">
+            <div class="brand">
+                <div class="brand-icon">
+                    <i class="fa-solid fa-user-doctor"></i>
                 </div>
-                <div style="margin-top: 15px; padding: 15px; background: #f0f9ff; border-radius: 8px; border-left: 4px solid var(--info-color);">
-                    <strong>ℹ️ Modèle utilisé :</strong> {{ result.model }}
+                <div class="brand-text">
+                    <h1>DermoIA Pro</h1>
+                    <p>Système expert d'aide au diagnostic dermatologique</p>
                 </div>
             </div>
-        {% endif %}
+
+            <div class="header-actions">
+                <a href="/image-analysis/" class="btn btn-secondary">
+                    <i class="fa-solid fa-camera"></i> Analyse Image
+                </a>
+                <a href="/dashboard/" class="btn btn-secondary">
+                    <i class="fa-solid fa-chart-pie"></i> Dashboard
+                </a>
+                <a href="/admin/" class="btn btn-secondary">
+                    <i class="fa-solid fa-lock"></i> Admin
+                </a>
+            </div>
+        </header>
+
+        <!-- Main Grid -->
+        <main class="content-grid">
+
+            <!-- Left Column: Input Form -->
+            <section class="form-section">
+                <div class="card card-accent-primary" id="formCard">
+                    <div class="card-header">
+                        <div class="card-title">
+                            <i class="fa-solid fa-clipboard-list"
+                                style="margin-right: 8px; color: var(--primary-color);"></i>
+                            Données Patient
+                        </div>
+                    </div>
+
+                    <form id="cancerForm" method="POST" action="/api/predict">
+
+                        <!-- Step 1: Informations Générales -->
+                        <fieldset class="fieldset">
+                            <legend class="fieldset-legend">1. Profil Général</legend>
+
+                            <div class="grid-2">
+                                <div class="form-group">
+                                    <label class="form-label" for="Sex">Sexe Biologique</label>
+                                    <div class="input-group">
+                                        <select id="Sex" name="Sex" class="form-control form-select">
+                                            <option value="Male">Homme</option>
+                                            <option value="Female">Femme</option>
+                                        </select>
+                                    </div>
+                                </div>
+
+                                <div class="form-group">
+                                    <label class="form-label" for="AgeCategory">Tranche d'âge</label>
+                                    <div class="input-group">
+                                        <select id="AgeCategory" name="AgeCategory" class="form-control form-select">
+                                            <option>18-24</option>
+                                            <option>25-29</option>
+                                            <option>30-34</option>
+                                            <option>35-39</option>
+                                            <option>40-44</option>
+                                            <option>45-49</option>
+                                            <option>50-54</option>
+                                            <option>55-59</option>
+                                            <option>60-64</option>
+                                            <option>65-69</option>
+                                            <option>70-74</option>
+                                            <option>75-79</option>
+                                            <option>80 or older</option>
+                                        </select>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="grid-2">
+                                <div class="form-group">
+                                    <label class="form-label" for="BMI">IMC (Masse Corporelle)</label>
+                                    <div class="input-group">
+                                        <input type="text" id="BMI" name="BMI" class="form-control"
+                                            placeholder="Ex: 24.5" required>
+                                        <span class="input-suffix">kg/m²</span>
+                                    </div>
+                                    <div class="error-msg" id="bmiError"><i class="fa-solid fa-circle-exclamation"></i>
+                                        Valeur invalide</div>
+                                </div>
+
+                                <div class="form-group">
+                                    <label class="form-label" for="Race">Origine Ethnique</label>
+                                    <div class="input-group">
+                                        <select id="Race" name="Race" class="form-control form-select">
+                                            <option>White</option>
+                                            <option>Black</option>
+                                            <option>Asian</option>
+                                            <option>Other</option>
+                                        </select>
+                                    </div>
+                                </div>
+                            </div>
+                        </fieldset>
+
+                        <!-- Step 2: Mode de Vie -->
+                        <fieldset class="fieldset">
+                            <legend class="fieldset-legend">2. Habitudes de Vie</legend>
+
+                            <div class="grid-2">
+                                <div class="form-group">
+                                    <label class="form-label" for="Smoking">Tabagisme</label>
+                                    <select id="Smoking" name="Smoking" class="form-control form-select">
+                                        <option value="No">Non</option>
+                                        <option value="Yes">Oui</option>
+                                    </select>
+                                </div>
+
+                                <div class="form-group">
+                                    <label class="form-label" for="PhysicalActivity">Activité Physique</label>
+                                    <select id="PhysicalActivity" name="PhysicalActivity"
+                                        class="form-control form-select">
+                                        <option value="Yes">Oui</option>
+                                        <option value="No">Non</option>
+                                    </select>
+                                </div>
+                            </div>
+
+                            <div class="form-group">
+                                <label class="form-label" for="SleepTime">Sommeil Moyen (heures/nuit)</label>
+                                <div class="input-group">
+                                    <input type="number" id="SleepTime" name="SleepTime" class="form-control" value="7"
+                                        min="0" max="24">
+                                    <span class="input-suffix">h</span>
+                                </div>
+                            </div>
+                        </fieldset>
+
+                        <!-- Step 3: Antécédents Médicaux -->
+                        <fieldset class="fieldset">
+                            <legend class="fieldset-legend">3. Antécédents Médicaux</legend>
+
+                            <div class="grid-2">
+                                <div class="form-group">
+                                    <label class="form-label" for="GenHealth">État de Santé Général</label>
+                                    <select id="GenHealth" name="GenHealth" class="form-control form-select">
+                                        <option>Excellent</option>
+                                        <option>Very good</option>
+                                        <option>Good</option>
+                                        <option>Fair</option>
+                                        <option>Poor</option>
+                                    </select>
+                                </div>
+                                <div class="form-group">
+                                    <label class="form-label" for="DiffWalking">Difficulté à marcher</label>
+                                    <select id="DiffWalking" name="DiffWalking" class="form-control form-select">
+                                        <option value="No">Non</option>
+                                        <option value="Yes">Oui</option>
+                                    </select>
+                                </div>
+                            </div>
+
+                            <!-- Checkbox Grid for Conditions -->
+                            <div class="form-label" style="margin-top: 1rem;">Pathologies Connues :</div>
+                            <div class="grid-2"
+                                style="background: var(--neutral-50); padding: 1rem; border-radius: var(--radius-md); border: 1px solid var(--neutral-200);">
+
+                                <div class="form-group" style="margin-bottom:0.5rem;">
+                                    <label class="form-label" for="HeartDisease" style="font-weight:400;">Maladie
+                                        Cardiaque</label>
+                                    <select id="HeartDisease" name="HeartDisease"
+                                        class="form-control form-select form-control-sm">
+                                        <option value="No">Non</option>
+                                        <option value="Yes">Oui</option>
+                                    </select>
+                                </div>
+
+                                <div class="form-group" style="margin-bottom:0.5rem;">
+                                    <label class="form-label" for="Asthma" style="font-weight:400;">Asthme</label>
+                                    <select id="Asthma" name="Asthma" class="form-control form-select form-control-sm">
+                                        <option value="No">Non</option>
+                                        <option value="Yes">Oui</option>
+                                    </select>
+                                </div>
+
+                                <div class="form-group" style="margin-bottom:0.5rem;">
+                                    <label class="form-label" for="KidneyDisease" style="font-weight:400;">Maladie
+                                        Rénale</label>
+                                    <select id="KidneyDisease" name="KidneyDisease"
+                                        class="form-control form-select form-control-sm">
+                                        <option value="No">Non</option>
+                                        <option value="Yes">Oui</option>
+                                    </select>
+                                </div>
+
+                                <div class="form-group" style="margin-bottom:0.5rem;">
+                                    <label class="form-label" for="Stroke" style="font-weight:400;">AVC</label>
+                                    <select id="Stroke" name="Stroke" class="form-control form-select form-control-sm">
+                                        <option value="No">Non</option>
+                                        <option value="Yes">Oui</option>
+                                    </select>
+                                </div>
+                            </div>
+
+                            <div class="form-group" id="diabeticGroup" style="margin-top: 1rem;">
+                                <label class="form-label" for="Diabetic">Diabète</label>
+                                <select id="Diabetic" name="Diabetic" class="form-control form-select">
+                                    <option value="No">Non</option>
+                                    <option value="Yes">Oui</option>
+                                    <option value="No, borderline diabetes">Pré-diabète</option>
+                                    <option value="Yes (during pregnancy)">Oui (Grossesse)</option>
+                                </select>
+                            </div>
+
+                            <div class="grid-2" style="margin-top: 1rem;">
+                                <div class="form-group">
+                                    <label class="form-label" for="PhysicalHealth">Jours malade (Physique / 30j)</label>
+                                    <input type="number" id="PhysicalHealth" name="PhysicalHealth" class="form-control"
+                                        value="0" min="0" max="30">
+                                </div>
+                                <div class="form-group">
+                                    <label class="form-label" for="MentalHealth">Jours malade (Mental / 30j)</label>
+                                    <input type="number" id="MentalHealth" name="MentalHealth" class="form-control"
+                                        value="0" min="0" max="30">
+                                </div>
+                            </div>
+                        </fieldset>
+
+                        <!-- Step 4: Configuration AI -->
+                        <fieldset class="fieldset">
+                            <legend class="fieldset-legend">4. Configuration Analyse</legend>
+                            <div class="form-group">
+                                <label class="form-label" for="model_choice">Modèle Prédictif</label>
+                                <div class="input-group">
+                                    <select id="model_choice" name="model_choice" class="form-control form-select"
+                                        style="font-weight: 600; color: var(--primary-dark);">
+                                        <option value="log_reg">Régression Logistique (Rapide/Interprétable)</option>
+                                        <option value="random_forest">Random Forest (Robuste)</option>
+                                        <option value="gradient_boosting">Gradient Boosting (Haute Précision)</option>
+                                        <option value="knn">K-Nearest Neighbors</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </fieldset>
+
+                        <button type="submit" class="btn btn-primary btn-full">
+                            <i class="fa-solid fa-microscope"></i> Lancer l'Analyse
+                        </button>
+                    </form>
+                </div>
+            </section>
+
+            <!-- Right Column: Results (Sticky) -->
+            <aside class="result-section">
+                <!-- Placeholder for Results -->
+                <div id="resultCard" class="result-card">
+                    <div class="result-header">
+                        <h3 class="result-title">Résultat de l'Analyse</h3>
+                        <div id="resultStatus" class="prediction-badge safe">En Attente</div>
+                    </div>
+
+                    <div class="result-body">
+                        <!-- Probability Meter -->
+                        <div class="probability-meter">
+                            <svg viewBox="0 0 36 36" class="circular-chart">
+                                <path class="circle-bg"
+                                    d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831">
+                                </path>
+                                <path id="probCircle" class="circle" stroke-dasharray="0, 100"
+                                    d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
+                                    stroke="#10b981"></path>
+                                <text x="18" y="20.35" class="percentage" id="probText">0%</text>
+                            </svg>
+                            <div class="text-center"
+                                style="margin-top: -10px; font-size: 0.8rem; color: var(--neutral-500); text-align: center;">
+                                Probabilité de Risque</div>
+                        </div>
+
+                        <!-- SHAP Explanation Area -->
+                        <div id="explanation-block" class="explanation-box">
+                            <p style="text-align: center; color: var(--neutral-400); font-style: italic;">
+                                Les détails de l'analyse apparaîtront ici.
+                            </p>
+                        </div>
+
+                        <!-- Actions -->
+                        <div id="resultActions" class="mt-4 hidden" style="margin-top: 1.5rem;">
+                            <button id="generate-report-btn" class="btn btn-accent btn-full">
+                                <i class="fa-solid fa-file-pdf"></i> Télécharger le Rapport
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Intro Card (Visible initially, hidden on result) -->
+                <div id="introCard" class="card"
+                    style="border: 2px dashed var(--neutral-300); background: transparent; text-align: center; padding: 3rem 1rem;">
+                    <i class="fa-solid fa-user-shield"
+                        style="font-size: 3rem; color: var(--neutral-300); margin-bottom: 1rem;"></i>
+                    <h3 style="color: var(--neutral-500); font-size: 1.2rem;">Prêt pour l'analyse</h3>
+                    <p style="font-size: 0.9rem;">Remplissez le formulaire patient à gauche et lancez l'analyse pour
+                        voir les résultats apparaître ici en temps réel.</p>
+                </div>
+
+            </aside>
+
+        </main>
     </div>
 
-    <!-- Plotly for client-side visualization of SHAP contributions -->
-    <script src="https://cdn.plot.ly/plotly-2.20.0.min.js"></script>
+    <!-- Scripts -->
     <script src="{{ url_for('static', filename='form.js') }}"></script>
 </body>
+
 </html>

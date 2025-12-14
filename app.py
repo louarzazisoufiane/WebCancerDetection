@@ -1,11 +1,17 @@
-from flask import Flask, render_template, request, jsonify, redirect
+from flask import Flask, render_template, request, jsonify, redirect, send_from_directory
 import pandas as pd
 import joblib
 from app_module.utils.xai import explain_model_prediction
 from app_module.utils.report import generate_professional_pdf
+from app_module.utils.database import db
+from app_module.utils.certificate import generate_certificate_from_result
 import plotly.graph_objects as go
+import os
+from datetime import datetime
+from app_module.config.settings import Config
 
 app = Flask(__name__)
+app.secret_key = Config.SECRET_KEY
 
 def binary_transform(df):
     return df.applymap(lambda x: 1 if x == "Yes" else 0)
@@ -99,12 +105,58 @@ def api_predict():
         except Exception as e:
             explanation = {'error': f'Failed to compute explanation: {str(e)}'}
 
+        # Sauvegarder le test dans la base de données
+        test_id = None
+        certificate_path = None
+        try:
+            # Préparer les features pour la sauvegarde
+            input_features = df_input.to_dict('records')[0] if not df_input.empty else {}
+            user_ip = request.remote_addr
+            
+            # Sauvegarder le test
+            test_id = db.save_test(
+                model_used=model_choice,
+                prediction=int(pred),
+                probability=float(prob),
+                input_features=input_features,
+                explanation=explanation if 'error' not in explanation else None,
+                certificate_path=None,  # Sera mis à jour après génération
+                user_ip=user_ip
+            )
+            
+            # Générer le certificat
+            test_data = {
+                'test_id': test_id,
+                'prediction': int(pred),
+                'probability': float(prob),
+                'model': model_choice,
+                'timestamp': datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
+                'input_features': input_features
+            }
+            certificate_path = generate_certificate_from_result(test_data)
+            
+            # Mettre à jour le test avec le chemin du certificat
+            conn = db.get_connection()
+            cursor = conn.cursor()
+            cursor.execute('UPDATE tests SET certificate_path = ? WHERE id = ?', (certificate_path, test_id))
+            conn.commit()
+            conn.close()
+            
+        except Exception as e:
+            # Ne pas faire échouer la requête si la sauvegarde échoue
+            import traceback
+            print(f"[ERROR] Erreur lors de la sauvegarde du test: {e}")
+            traceback.print_exc()
+            # Logger l'erreur mais continuer
+
         return jsonify({
             'success': True,
             'prediction': int(pred),
             'probability': float(prob),
             'model': model_choice,
-            'explanation': explanation
+            'explanation': explanation,
+            'test_id': test_id,
+            'certificate_path': certificate_path
         })
     except Exception as e:
         return jsonify({
@@ -140,7 +192,7 @@ def report():
         if explanation and 'all_features' in explanation:
             feats = [it['feature'] for it in explanation['all_features']]
             vals = [it['shap_value'] for it in explanation['all_features']]
-            fig = go.Figure(go.Bar(x=vals, y=feats, orientation='h', marker_color=['#f56565' if v>=0 else '#38a169' for v in vals]))
+            fig = go.Figure(go.Bar(x=vals, y=feats, orientation='h', marker_color=['#FF6B35' if v>=0 else '#10B981' for v in vals]))
             fig.update_layout(margin=dict(l=200, r=20, t=20, b=20), height=800)
 
         meta = {
@@ -163,6 +215,21 @@ def report():
 # Enregistrer le dashboard modular
 from app_module.routes.dashboard import dashboard_bp
 dashboard_bp(app)
+
+# Enregistrer les routes admin
+from app_module.routes.admin import admin_bp
+app.register_blueprint(admin_bp)
+
+# Enregistrer les routes image classification
+from app_module.routes.image_prediction import image_bp
+app.register_blueprint(image_bp)
+
+# Route pour servir les certificats (public, pour téléchargement)
+@app.route('/certificates/<path:filename>')
+def serve_certificate(filename):
+    """Servir les certificats (accessible publiquement pour téléchargement)"""
+    cert_dir = os.path.join(Config.BASE_DIR, 'data', 'certificates')
+    return send_from_directory(cert_dir, filename)
 
 # Redirection pour /dashboard sans slash final
 @app.route('/dashboard')

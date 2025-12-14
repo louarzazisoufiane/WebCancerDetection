@@ -34,57 +34,49 @@ def dashboard_bp(server):
     )
     
     # Personnalisation du style
+    # Personnalisation du style (Template Maître)
     dash_app.index_string = '''
     <!DOCTYPE html>
     <html>
         <head>
             {%metas%}
-            <title>{%title%}</title>
+            <title>Dashboard | DermoIA Pro</title>
             {%favicon%}
             {%css%}
+            <!-- Fonts -->
+            <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+            <!-- Icons -->
+            <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+            <!-- Main Style -->
+            <link rel="stylesheet" href="/static/style.css">
             <style>
-                body {
-                    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-                    background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
-                }
-                .dashboard-header {
-                    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-                    color: white;
-                    padding: 30px;
-                    border-radius: 10px;
-                    margin-bottom: 30px;
-                    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
-                }
-                .stat-card {
-                    background: white;
-                    border-radius: 10px;
-                    padding: 20px;
-                    text-align: center;
-                    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-                    border-top: 4px solid #667eea;
-                    transition: transform 0.3s ease;
-                }
-                .stat-card:hover {
-                    transform: translateY(-5px);
-                    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.15);
-                }
-                .stat-value {
-                    font-size: 2rem;
-                    font-weight: 700;
-                    color: #667eea;
-                    margin: 10px 0;
-                }
-                .chart-card {
-                    background: white;
-                    border-radius: 10px;
-                    padding: 20px;
-                    margin-bottom: 20px;
-                    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+                /* Overrides specific to Dash/Bootstrap conflicts if any */
+                .card {
+                    margin-bottom: 0 !important; /* Let grid handle spacing */
                 }
             </style>
         </head>
         <body>
-            {%app_entry%}
+            <div class="app-container">
+                <header class="main-header">
+                    <div class="brand">
+                        <a href="/" class="brand-text" style="display: flex; align-items: center; gap: 0.75rem; text-decoration: none;">
+                            <i class="fa-solid fa-chart-pie brand-icon"></i>
+                            <div>
+                                <h1>Dashboard Analytique</h1>
+                                <p>Vue d'ensemble et performances</p>
+                            </div>
+                        </a>
+                    </div>
+                    <div class="header-actions">
+                        <a href="/" class="btn btn-secondary"><i class="fa-solid fa-arrow-left"></i> Retour</a>
+                        <a href="/dashboard/" class="btn btn-primary"><i class="fa-solid fa-rotate"></i> Actualiser</a>
+                    </div>
+                </header>
+                
+                {%app_entry%}
+            </div>
+            
             <footer>
                 {%config%}
                 {%scripts%}
@@ -96,41 +88,37 @@ def dashboard_bp(server):
     
     # Layout
     dash_app.layout = dbc.Container([
-        # En-tête
-        dbc.Row([
-            dbc.Col([
-                html.Div([
-                    html.H1("📊 Dashboard Analytique Professionnel"),
-                    html.P("Analyse complète et en temps réel des données de santé")
-                ], className="dashboard-header")
-            ], width=12)
-        ], className="mb-4"),
         
         # Statistiques clés
         dbc.Row([
             dbc.Col([
                 html.Div([
-                    html.Div("Total Patients", style={'color': '#718096', 'fontWeight': '600', 'textTransform': 'uppercase', 'fontSize': '0.9rem'}),
-                    html.Div(id="stat-total", className="stat-value"),
-                ], className="stat-card")
+                    # Icon
+                    html.Div(html.I(className="fa-solid fa-users"), className="stat-icon", style={'background': 'var(--primary-light)', 'color': 'var(--primary-color)', 'marginBottom': '10px'}),
+                    html.Div("Total Patients", style={'color': 'var(--neutral-500)', 'fontWeight': '600', 'textTransform': 'uppercase', 'fontSize': '0.9rem'}),
+                    html.Div(id="stat-total", className="stat-value", style={'fontSize': '2rem', 'fontWeight': '700', 'color': 'var(--neutral-900)'}),
+                ], className="card card-accent-primary", style={'textAlign': 'center', 'display': 'flex', 'flexDirection': 'column', 'alignItems': 'center'})
             ], md=3, className="mb-3"),
             dbc.Col([
                 html.Div([
-                    html.Div("Cas Cancer Peau", style={'color': '#718096', 'fontWeight': '600', 'textTransform': 'uppercase', 'fontSize': '0.9rem'}),
-                    html.Div(id="stat-cancer", className="stat-value", style={"color": "#f56565"}),
-                ], className="stat-card")
+                    html.Div(html.I(className="fa-solid fa-triangle-exclamation"), className="stat-icon", style={'background': 'var(--danger-bg)', 'color': 'var(--danger-color)', 'marginBottom': '10px'}),
+                    html.Div("Cas Cancer Peau", style={'color': 'var(--neutral-500)', 'fontWeight': '600', 'textTransform': 'uppercase', 'fontSize': '0.9rem'}),
+                    html.Div(id="stat-cancer", className="stat-value", style={"color": "var(--danger-color)", 'fontSize': '2rem', 'fontWeight': '700'}),
+                ], className="card card-accent-danger", style={'textAlign': 'center', 'display': 'flex', 'flexDirection': 'column', 'alignItems': 'center'})
             ], md=3, className="mb-3"),
             dbc.Col([
                 html.Div([
-                    html.Div("Taux d'Incidence", style={'color': '#718096', 'fontWeight': '600', 'textTransform': 'uppercase', 'fontSize': '0.9rem'}),
-                    html.Div(id="stat-rate", className="stat-value", style={"color": "#ed8936"}),
-                ], className="stat-card")
+                    html.Div(html.I(className="fa-solid fa-chart-line"), className="stat-icon", style={'background': 'var(--warning-bg)', 'color': 'var(--warning-color)', 'marginBottom': '10px'}),
+                    html.Div("Taux d'Incidence", style={'color': 'var(--neutral-500)', 'fontWeight': '600', 'textTransform': 'uppercase', 'fontSize': '0.9rem'}),
+                    html.Div(id="stat-rate", className="stat-value", style={"color": "var(--warning-text)", 'fontSize': '2rem', 'fontWeight': '700'}),
+                ], className="card card-accent-warning", style={'textAlign': 'center', 'display': 'flex', 'flexDirection': 'column', 'alignItems': 'center'})
             ], md=3, className="mb-3"),
             dbc.Col([
                 html.Div([
-                    html.Div("BMI Moyen", style={'color': '#718096', 'fontWeight': '600', 'textTransform': 'uppercase', 'fontSize': '0.9rem'}),
-                    html.Div(id="stat-bmi", className="stat-value", style={"color": "#4299e1"}),
-                ], className="stat-card")
+                    html.Div(html.I(className="fa-solid fa-weight-scale"), className="stat-icon", style={'background': 'var(--success-bg)', 'color': 'var(--success-color)', 'marginBottom': '10px'}),
+                    html.Div("BMI Moyen", style={'color': 'var(--neutral-500)', 'fontWeight': '600', 'textTransform': 'uppercase', 'fontSize': '0.9rem'}),
+                    html.Div(id="stat-bmi", className="stat-value", style={"color": "var(--success-text)", 'fontSize': '2rem', 'fontWeight': '700'}),
+                ], className="card card-accent-success", style={'textAlign': 'center', 'display': 'flex', 'flexDirection': 'column', 'alignItems': 'center'})
             ], md=3, className="mb-3"),
         ], className="mb-4"),
         
@@ -138,7 +126,7 @@ def dashboard_bp(server):
         dbc.Row([
             dbc.Col([
                 dbc.Card([
-                    dbc.CardHeader("🔍 Filtres Avancés", style={'fontWeight': '700', 'color': '#667eea'}),
+                    dbc.CardHeader([html.I(className="fa-solid fa-filter me-2"), "Filtres Avancés"], style={'fontWeight': '700', 'color': 'var(--primary-dark)', 'background': 'transparent', 'borderBottom': '1px solid var(--neutral-200)'}),
                     dbc.CardBody([
                         dbc.Row([
                             dbc.Col([
@@ -150,7 +138,7 @@ def dashboard_bp(server):
                                     multi=True,
                                     placeholder='Sélectionnez les catégories d\'âge'
                                 )
-                            ], md=6),
+                            ], md=6, className="mb-3"),
                             dbc.Col([
                                 dbc.Label("Statut Fumeur", className="fw-bold"),
                                 dcc.Dropdown(
@@ -160,8 +148,8 @@ def dashboard_bp(server):
                                     multi=True,
                                     placeholder='Sélectionnez le statut fumeur'
                                 )
-                            ], md=6),
-                        ], className="mb-3"),
+                            ], md=6, className="mb-3"),
+                        ]),
                         dbc.Row([
                             dbc.Col([
                                 dbc.Label("Sexe", className="fw-bold"),
@@ -185,7 +173,7 @@ def dashboard_bp(server):
                             ], md=6),
                         ]),
                     ])
-                ])
+                ], className="card")
             ], width=12)
         ], className="mb-4"),
         
@@ -194,15 +182,15 @@ def dashboard_bp(server):
             dbc.Col([
                 dbc.Card([
                     dbc.CardHeader("Distribution par Catégorie d'Âge", style={'fontWeight': '700'}),
-                    dbc.CardBody(dcc.Graph(id='age-distribution', style={'height': '400px'}))
-                ], className="chart-card")
+                    dbc.CardBody(dcc.Graph(id='age-distribution', style={'height': '350px'}))
+                ], className="card card-accent-primary")
             ], md=6, className="mb-4"),
             
             dbc.Col([
                 dbc.Card([
                     dbc.CardHeader("Distribution BMI", style={'fontWeight': '700'}),
-                    dbc.CardBody(dcc.Graph(id='bmi-distribution', style={'height': '400px'}))
-                ], className="chart-card")
+                    dbc.CardBody(dcc.Graph(id='bmi-distribution', style={'height': '350px'}))
+                ], className="card card-accent-primary")
             ], md=6, className="mb-4"),
         ]),
         
@@ -211,15 +199,15 @@ def dashboard_bp(server):
             dbc.Col([
                 dbc.Card([
                     dbc.CardHeader("Statut Fumeur", style={'fontWeight': '700'}),
-                    dbc.CardBody(dcc.Graph(id='smoking-distribution', style={'height': '400px'}))
-                ], className="chart-card")
+                    dbc.CardBody(dcc.Graph(id='smoking-distribution', style={'height': '350px'}))
+                ], className="card card-accent-primary")
             ], md=6, className="mb-4"),
             
             dbc.Col([
                 dbc.Card([
                     dbc.CardHeader("Cas Cancer Peau", style={'fontWeight': '700'}),
-                    dbc.CardBody(dcc.Graph(id='cancer-distribution', style={'height': '400px'}))
-                ], className="chart-card")
+                    dbc.CardBody(dcc.Graph(id='cancer-distribution', style={'height': '350px'}))
+                ], className="card card-accent-primary")
             ], md=6, className="mb-4"),
         ]),
         
@@ -228,15 +216,15 @@ def dashboard_bp(server):
             dbc.Col([
                 dbc.Card([
                     dbc.CardHeader("État de Santé Général", style={'fontWeight': '700'}),
-                    dbc.CardBody(dcc.Graph(id='health-distribution', style={'height': '400px'}))
-                ], className="chart-card")
+                    dbc.CardBody(dcc.Graph(id='health-distribution', style={'height': '350px'}))
+                ], className="card card-accent-primary")
             ], md=6, className="mb-4"),
             
             dbc.Col([
                 dbc.Card([
                     dbc.CardHeader("Maladie Cardiaque vs Cancer", style={'fontWeight': '700'}),
-                    dbc.CardBody(dcc.Graph(id='heart-cancer-chart', style={'height': '400px'}))
-                ], className="chart-card")
+                    dbc.CardBody(dcc.Graph(id='heart-cancer-chart', style={'height': '350px'}))
+                ], className="card card-accent-primary")
             ], md=6, className="mb-4"),
         ]),
         
@@ -244,13 +232,13 @@ def dashboard_bp(server):
         dbc.Row([
             dbc.Col([
                 dbc.Card([
-                    dbc.CardHeader("📈 Résumé Statistique", style={'fontWeight': '700', 'color': '#667eea'}),
+                    dbc.CardHeader("📈 Résumé Statistique", style={'fontWeight': '700', 'color': 'var(--primary-dark)'}),
                     dbc.CardBody(html.Div(id='stats-summary'))
-                ], className="chart-card")
+                ], className="card")
             ], width=12, className="mb-4")
         ]),
         
-    ], fluid=True, style={'padding': '20px', 'backgroundColor': 'transparent'})
+    ], fluid=True, style={'padding': '0', 'backgroundColor': 'transparent'})
     
     # Callbacks
     @dash_app.callback(
@@ -315,7 +303,7 @@ def dashboard_bp(server):
         age_fig = px.bar(
             filtered_df['AgeCategory'].value_counts().reset_index().rename(columns={'AgeCategory': 'Âge', 'count': 'Nombre'}),
             x='Âge', y='Nombre',
-            color_discrete_sequence=['#667eea']
+            color_discrete_sequence=['#0369a1'] # Primary
         )
         age_fig.update_layout(plot_bgcolor='rgba(0,0,0,0)', paper_bgcolor='rgba(0,0,0,0)', hovermode='x unified')
         
@@ -324,7 +312,7 @@ def dashboard_bp(server):
             filtered_df,
             x='BMI',
             nbins=30,
-            color_discrete_sequence=['#764ba2']
+            color_discrete_sequence=['#0d9488'] # Accent Teal
         )
         bmi_fig.update_layout(plot_bgcolor='rgba(0,0,0,0)', paper_bgcolor='rgba(0,0,0,0)', hovermode='x unified')
         
@@ -332,7 +320,7 @@ def dashboard_bp(server):
         smoking_fig = px.pie(
             values=filtered_df['Smoking'].value_counts().values,
             names=filtered_df['Smoking'].value_counts().index,
-            color_discrete_sequence=['#48bb78', '#f56565']
+            color_discrete_sequence=['#059669', '#dc2626'] # Success, Danger
         )
         smoking_fig.update_layout(paper_bgcolor='rgba(0,0,0,0)')
         
@@ -341,7 +329,7 @@ def dashboard_bp(server):
         cancer_fig = px.pie(
             values=cancer_counts,
             names=['Positif', 'Négatif'],
-            color_discrete_sequence=['#f56565', '#48bb78']
+            color_discrete_sequence=['#dc2626', '#059669'] # Danger, Success
         )
         cancer_fig.update_layout(paper_bgcolor='rgba(0,0,0,0)')
         
@@ -352,14 +340,14 @@ def dashboard_bp(server):
             health_fig = px.bar(
                 x=health_data.index.str.replace('GenHealth_', ''),
                 y=health_data.values,
-                color_discrete_sequence=['#ed8936']
+                color_discrete_sequence=['#0369a1']
             )
         else:
                 # Utiliser la colonne brute si pas de colonnes OneHotEncoded
                 health_fig = px.bar(
                     filtered_df['GenHealth'].value_counts().reset_index().rename(columns={'GenHealth': 'Santé', 'count': 'Nombre'}),
                     x='Santé', y='Nombre',
-                    color_discrete_sequence=['#ed8936']
+                    color_discrete_sequence=['#0369a1']
                 )
         health_fig.update_layout(plot_bgcolor='rgba(0,0,0,0)', paper_bgcolor='rgba(0,0,0,0)', xaxis_title='État', yaxis_title='Nombre')
         
@@ -369,7 +357,7 @@ def dashboard_bp(server):
             heart_fig = px.bar(
                 heart_cancer_data,
                 barmode='group',
-                color_discrete_sequence=['#48bb78', '#f56565']
+                color_discrete_sequence=['#059669', '#dc2626']
             )
         else:
             heart_fig = {'data': [], 'layout': {'title': 'Pas de données'}}
