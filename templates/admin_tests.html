@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="fr">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Administration | SkinCheck Vision</title>
+    <link rel="icon"
+        href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🛡️</text></svg>">
+
+    <!-- Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+
+<body>
+    <div class="app-container">
+        <!-- Header -->
+        <header class="main-header">
+            <div class="brand">
+                <div class="brand-icon"><i class="fa-solid fa-shield-halved"></i></div>
+                <div class="brand-text">
+                    <h1 style="font-size: 1.5rem; margin: 0;">SkinCheck Vision <small
+                            style="font-size: 0.9rem; font-weight: 400; opacity: 0.7;">| Admin</small></h1>
+                </div>
+            </div>
+
+            <div class="header-actions">
+                <a href="/" class="btn btn-secondary"><i class="fa-solid fa-home"></i> Accueil</a>
+                <a href="/image-analysis/" class="btn btn-secondary"><i class="fa-solid fa-camera"></i> Image</a>
+                <a href="/dashboard/" class="btn btn-secondary"><i class="fa-solid fa-chart-pie"></i> Dashboard</a>
+                <a href="/admin/logout" class="btn btn-secondary"
+                    style="border-color: var(--danger-color); color: var(--danger-color);">
+                    <i class="fa-solid fa-sign-out-alt"></i> Déconnexion
+                </a>
+            </div>
+        </header>
+
+        <!-- Stats Overview -->
+        <div class="stat-grid"
+            style="display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 1.5rem; margin-bottom: 2rem;">
+            <!-- Card 1: Total -->
+            <div class="card card-accent-primary"
+                style="display: flex; align-items: center; gap: 1rem; padding: 1.5rem;">
+                <div
+                    style="width: 50px; height: 50px; background: var(--primary-light); color: var(--primary-color); border-radius: var(--radius-md); display: flex; align-items: center; justify-content: center; font-size: 1.5rem;">
+                    <i class="fa-solid fa-users"></i>
+                </div>
+                <div>
+                    <h3 style="font-size: 0.9rem; color: var(--neutral-500); margin: 0; font-weight: 500;">Total
+                        Analyses</h3>
+                    <span style="font-size: 2rem; font-weight: 700; color: var(--neutral-900);">{{ total_count }}</span>
+                </div>
+            </div>
+
+            <!-- Card 2: Risques -->
+            <div class="card card-accent-danger"
+                style="display: flex; align-items: center; gap: 1rem; padding: 1.5rem;">
+                <div
+                    style="width: 50px; height: 50px; background: var(--danger-bg); color: var(--danger-color); border-radius: var(--radius-md); display: flex; align-items: center; justify-content: center; font-size: 1.5rem;">
+                    <i class="fa-solid fa-triangle-exclamation"></i>
+                </div>
+                <div>
+                    <h3 style="font-size: 0.9rem; color: var(--neutral-500); margin: 0; font-weight: 500;">Risques
+                        Détectés</h3>
+                    <span style="font-size: 2rem; font-weight: 700; color: var(--danger-color);">{{ risk_count }}</span>
+                </div>
+            </div>
+
+            <!-- Card 3: Taux -->
+            <div class="card card-accent-warning"
+                style="display: flex; align-items: center; gap: 1rem; padding: 1.5rem;">
+                <div
+                    style="width: 50px; height: 50px; background: var(--warning-bg); color: var(--warning-color); border-radius: var(--radius-md); display: flex; align-items: center; justify-content: center; font-size: 1.5rem;">
+                    <i class="fa-solid fa-chart-line"></i>
+                </div>
+                <div>
+                    <h3 style="font-size: 0.9rem; color: var(--neutral-500); margin: 0; font-weight: 500;">Taux de
+                        Risque</h3>
+                    <span style="font-size: 2rem; font-weight: 700; color: var(--warning-text);">
+                        {% if total_count > 0 %}
+                        {{ "%.1f"|format((risk_count / total_count) * 100) }}%
+                        {% else %}
+                        0%
+                        {% endif %}
+                    </span>
+                </div>
+            </div>
+        </div>
+
+        {% if tests %}
+        <div class="content-grid" style="grid-template-columns: 1fr;"> <!-- Single column for list -->
+            {% for test in tests %}
+            <div class="card"
+                style="border-left: 4px solid {% if test.prediction == 1 %}var(--danger-color){% else %}var(--success-color){% endif %}; transition: transform 0.2s;">
+                <div class="card-header"
+                    style="border-bottom: 1px solid var(--neutral-100); padding-bottom: 1rem; margin-bottom: 1rem; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;">
+                    <div>
+                        <div class="card-title" style="margin-bottom: 0;">Test #{{ test.id }}</div>
+                        <span style="font-size: 0.85rem; color: var(--neutral-500);"><i class="fa-regular fa-clock"></i>
+                            {{ test.timestamp }}</span>
+                    </div>
+
+                    <div>
+                        {% if test.prediction == 1 %}
+                        <span class="prediction-badge danger"><i class="fa-solid fa-triangle-exclamation"></i> Risque
+                            Détecté</span>
+                        {% else %}
+                        <span class="prediction-badge safe"><i class="fa-solid fa-check"></i> Aucun Risque</span>
+                        {% endif %}
+                        <span class="prediction-badge"
+                            style="background: var(--neutral-100); color: var(--neutral-700); border: 1px solid var(--neutral-200);">
+                            {{ "%.1f"|format(test.probability * 100) }}%
+                        </span>
+                    </div>
+                </div>
+
+                <div class="grid-2" style="font-size: 0.9rem; color: var(--neutral-600); margin-bottom: 1rem;">
+                    <div><strong style="color: var(--neutral-800);">Modèle:</strong> {{ test.model_used }}</div>
+                    <div><strong style="color: var(--neutral-800);">IP:</strong> {{ test.user_ip or 'Masquée' }}</div>
+                </div>
+
+                <div
+                    style="background: var(--neutral-50); padding: 10px; border-radius: var(--radius-md); font-size: 0.85rem; display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 1rem;">
+                    {% for key, value in test.input_features.items() %}
+                    {% if loop.index <= 6 %} <span
+                        style="background: white; padding: 4px 8px; border-radius: 4px; border: 1px solid var(--neutral-200);">
+                        <strong>{{ key }}:</strong> {{ value }}
+                        </span>
+                        {% endif %}
+                        {% endfor %}
+                        {% if test.input_features|length > 6 %}
+                        <span style="color: var(--neutral-500);">+ {{ test.input_features|length - 6 }} autres...</span>
+                        {% endif %}
+                </div>
+
+                <a href="{{ url_for('admin.test_detail', test_id=test.id) }}" class="btn btn-primary btn-sm"
+                    style="width: auto; display: inline-flex;">
+                    Voir les détails <i class="fa-solid fa-chevron-right" style="font-size: 0.8em;"></i>
+                </a>
+            </div>
+            {% endfor %}
+        </div>
+
+        <!-- Pagination (Simple Implementation) -->
+        {% if total_pages > 1 %}
+        <div style="display: flex; justify-content: center; gap: 10px; margin-top: 2rem;">
+            {% if current_page > 1 %}
+            <a href="?page={{ current_page - 1 }}" class="btn btn-secondary"><i class="fa-solid fa-chevron-left"></i>
+                Précédent</a>
+            {% endif %}
+
+            <span class="btn" style="background: var(--primary-bg); color: var(--primary-dark); cursor: default;">
+                Page {{ current_page }} / {{ total_pages }}
+            </span>
+
+            {% if current_page < total_pages %} <a href="?page={{ current_page + 1 }}" class="btn btn-secondary">Suivant
+                <i class="fa-solid fa-chevron-right"></i></a>
+                {% endif %}
+        </div>
+        {% endif %}
+
+        {% else %}
+        <div class="card" style="text-align: center; padding: 4rem 2rem;">
+            <div style="font-size: 3rem; color: var(--neutral-300); margin-bottom: 1rem;"><i
+                    class="fa-solid fa-inbox"></i></div>
+            <h3 style="color: var(--neutral-500);">Aucun test enregistré pour le moment.</h3>
+        </div>
+        {% endif %}
+    </div>
+</body>
+
+</html>

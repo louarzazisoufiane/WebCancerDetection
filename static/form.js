@@ -1,461 +1,491 @@
-// ========== UTILITAIRES GLOBALES ==========
+// ========== UI HELPERS ==========
 const UI = {
-    // Afficher une alerte
-    showAlert(message, type = 'info', duration = 5000) {
+    // Show Full Screen Loader
+    showLoader(message = 'Analyse par IA en cours...') {
+        // Remove existing loader if any
+        const existing = document.querySelector('.loader-overlay');
+        if (existing) existing.remove();
+
+        const overlay = document.createElement('div');
+        overlay.className = 'loader-overlay';
+        overlay.innerHTML = `
+            <div class="spinner"></div>
+            <div style="margin-top: 20px; font-weight: 600; color: var(--neutral-700);">${message}</div>
+        `;
+        document.body.appendChild(overlay);
+        return overlay;
+    },
+
+    hideLoader() {
+        const overlay = document.querySelector('.loader-overlay');
+        if (overlay) {
+            overlay.style.opacity = '0';
+            setTimeout(() => overlay.remove(), 300);
+        }
+    },
+
+    showAlert(message, type = 'info') {
+        const container = document.querySelector('.form-section');
         const alertDiv = document.createElement('div');
         alertDiv.className = `alert alert-${type}`;
-        const closeBtn = document.createElement('span');
-        closeBtn.className = 'alert-close';
-        closeBtn.innerHTML = '&times;';
-        closeBtn.onclick = function() { this.parentElement.remove(); };
-        
         alertDiv.textContent = message;
-        alertDiv.appendChild(closeBtn);
-        
-        const container = document.querySelector('.container') || document.body;
-        container.insertBefore(alertDiv, container.firstChild);
-        
-        if (duration) {
-            setTimeout(() => alertDiv.remove(), duration);
+
+        // Insert at top of form
+        const card = container.querySelector('.card');
+        card.insertBefore(alertDiv, card.firstChild);
+
+        setTimeout(() => alertDiv.remove(), 5000);
+    },
+
+    // Toggle between Intro and Result cards
+    showResultCard() {
+        const introCard = document.getElementById('introCard');
+        const resultCard = document.getElementById('resultCard');
+
+        if (introCard) introCard.classList.add('hidden');
+        if (resultCard) {
+            resultCard.style.display = 'block'; // Ensure it's not display:none
+            // Small delay to allow display:block to apply before transition
+            setTimeout(() => {
+                resultCard.classList.add('visible');
+            }, 10);
         }
-        return alertDiv;
     },
 
-    // Afficher un loader
-    showLoader(message = 'Traitement en cours...') {
-        const loader = document.createElement('div');
-        loader.className = 'loading-text';
-        loader.id = 'loader';
-        loader.innerHTML = `
-            <span class="spinner"></span>
-            <span>${message}</span>
-        `;
-        return loader;
+    resetResultView() {
+        const introCard = document.getElementById('introCard');
+        const resultCard = document.getElementById('resultCard');
+
+        if (introCard) introCard.classList.remove('hidden');
+        if (resultCard) resultCard.classList.remove('visible');
     },
 
-    // Afficher une barre de progression
-    updateProgressBar(percentage) {
-        let progressBar = document.querySelector('.progress-fill');
-        if (!progressBar) {
-            const barContainer = document.createElement('div');
-            barContainer.className = 'progress-bar';
-            barContainer.innerHTML = '<div class="progress-fill"></div>';
-            document.body.appendChild(barContainer);
-            progressBar = document.querySelector('.progress-fill');
+    animateProbability(probability) {
+        // probability is 0.0 to 1.0
+        const percentage = Math.round(probability * 100);
+        const circle = document.getElementById('probCircle');
+        const text = document.getElementById('probText');
+
+        if (!circle || !text) return;
+
+        // Reset
+        circle.style.strokeDasharray = "0, 100";
+
+        // Color logic
+        let color = '#10b981'; // Green (Safe)
+        if (percentage > 50) color = '#ef4444'; // Red (Danger)
+        else if (percentage > 20) color = '#f59e0b'; // Orange (Warning)
+
+        circle.style.stroke = color;
+
+        // Animate
+        setTimeout(() => {
+            circle.style.strokeDasharray = `${percentage}, 100`;
+            text.textContent = `${percentage}%`;
+            text.style.fill = color;
+        }, 100);
+    },
+
+    updateInputError(input, message) {
+        const group = input.closest('.form-group');
+        const errorMsg = group.querySelector('.error-msg');
+
+        if (message) {
+            input.classList.add('error');
+            if (errorMsg) errorMsg.innerHTML = `<i class="fa-solid fa-circle-exclamation"></i> ${message}`;
+        } else {
+            input.classList.remove('error');
         }
-        progressBar.style.width = percentage + '%';
     },
 
-    // Masquer le loader
-    hideLoader() {
-        const loader = document.getElementById('loader');
-        if (loader) loader.remove();
-    },
+    switchTab(tabName) {
+        // Buttons
+        document.querySelectorAll('.tab-btn').forEach(btn => {
+            btn.classList.remove('active');
+            btn.style.borderBottom = 'none';
+            btn.style.fontWeight = '500';
+            btn.style.color = 'var(--neutral-500)';
 
-    // Valider un champ
-    validateField(field, rules) {
-        const value = field.value.trim();
-        const errorElement = field.parentElement.querySelector('.error');
-
-        for (const [rule, config] of Object.entries(rules)) {
-            switch(rule) {
-                case 'required':
-                    if (!value) {
-                        if (errorElement) errorElement.textContent = config.message;
-                        field.classList.add('error-field');
-                        return false;
-                    }
-                    break;
-                case 'min':
-                    if (value.length < config.value) {
-                        if (errorElement) errorElement.textContent = config.message;
-                        field.classList.add('error-field');
-                        return false;
-                    }
-                    break;
-                case 'max':
-                    if (value.length > config.value) {
-                        if (errorElement) errorElement.textContent = config.message;
-                        field.classList.add('error-field');
-                        return false;
-                    }
-                    break;
-                case 'number':
-                    if (isNaN(value) || value === '') {
-                        if (errorElement) errorElement.textContent = config.message;
-                        field.classList.add('error-field');
-                        return false;
-                    }
-                    break;
-                case 'range':
-                    const num = parseFloat(value);
-                    if (num < config.min || num > config.max) {
-                        if (errorElement) errorElement.textContent = config.message;
-                        field.classList.add('error-field');
-                        return false;
-                    }
-                    break;
-                case 'email':
-                    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-                    if (!emailRegex.test(value)) {
-                        if (errorElement) errorElement.textContent = config.message;
-                        field.classList.add('error-field');
-                        return false;
-                    }
-                    break;
+            if (btn.dataset.tab === tabName) {
+                btn.classList.add('active');
+                btn.style.borderBottom = '2px solid var(--primary-color)';
+                btn.style.fontWeight = '600';
+                btn.style.color = 'var(--primary-color)';
             }
-        }
+        });
 
-        field.classList.remove('error-field');
-        if (errorElement) errorElement.textContent = '';
-        return true;
+        // Content
+        const shapCont = document.getElementById('shap-container');
+        const limeCont = document.getElementById('lime-container');
+
+        if (tabName === 'shap') {
+            if (shapCont) shapCont.style.display = 'block';
+            if (limeCont) limeCont.style.display = 'none';
+        } else {
+            if (shapCont) shapCont.style.display = 'none';
+            if (limeCont) limeCont.style.display = 'block';
+
+            // Fix Plotly resize issue when unhiding
+            try {
+                const limePlot = document.getElementById('lime-mini-chart');
+                if (limePlot) Plotly.Plots.resize(limePlot);
+            } catch (e) { }
+        }
     }
 };
 
-// ========== VALIDATION DU FORMULAIRE ==========
+// ========== FORM LOGIC ==========
 document.addEventListener("DOMContentLoaded", () => {
     const form = document.getElementById("cancerForm");
-    
+
     if (!form) return;
 
-    const inputs = form.querySelectorAll('input, select');
-
-    // Validation en temps réel
-    inputs.forEach(input => {
-        input.addEventListener('blur', () => {
-            validateFormField(input);
-        });
-
+    // Real-time Validation (Binds to all inputs)
+    form.querySelectorAll('input, select').forEach(input => {
         input.addEventListener('input', () => {
-            input.classList.remove('error-field');
-            const errorElement = input.parentElement.querySelector('.error');
-            if (errorElement) errorElement.textContent = '';
+            UI.updateInputError(input, null); // Clear error on type
         });
+
+        if (input.id === 'BMI') {
+            input.addEventListener('blur', validateBMI);
+        }
     });
 
-    // Validation BMI
-    const bmiInput = document.getElementById("BMI");
-    if (bmiInput) {
-        bmiInput.addEventListener("input", validateBMI);
-        bmiInput.addEventListener("blur", validateBMI);
-    }
-
-    // Affichage conditionnel des champs
+    // Age Change Logic (Conditional Fields)
     const ageSelect = document.getElementById("AgeCategory");
     if (ageSelect) {
         ageSelect.addEventListener("change", handleAgeChange);
-        handleAgeChange();
+        handleAgeChange(); // Init
     }
 
-    // Soumission du formulaire
+    // Submit
     form.addEventListener("submit", handleFormSubmit);
 });
 
-// Fonction pour valider un champ du formulaire
-function validateFormField(field) {
-    const value = field.value.trim();
-    const fieldName = field.name || field.id;
-    const errorElement = field.parentElement.querySelector('.error');
+function validateBMI() {
+    const input = document.getElementById("BMI");
+    const val = parseFloat(input.value);
 
-    if (fieldName === 'BMI') {
-        const num = parseFloat(value);
-        if (!value || isNaN(num) || num <= 0 || num > 200) {
-            if (errorElement) {
-                errorElement.textContent = "BMI doit être un nombre entre 1 et 200";
-            }
-            field.classList.add('error-field');
-            return false;
-        }
+    if (isNaN(val) || val < 10 || val > 60) {
+        UI.updateInputError(input, "IMC invalide (10-60)");
+        return false;
     }
-
-    field.classList.remove('error-field');
-    if (errorElement) errorElement.textContent = '';
     return true;
 }
 
-// Validation spécifique BMI
-function validateBMI() {
-    const bmiInput = document.getElementById("BMI");
-    const bmiError = document.getElementById("bmiError");
-    const value = parseFloat(bmiInput.value);
-
-    if (isNaN(value) || value <= 0) {
-        bmiError.textContent = "BMI doit être un nombre positif";
-        bmiInput.classList.add('error-field');
-        return false;
-    } else if (value > 200) {
-        bmiError.textContent = "BMI doit être inférieur à 200";
-        bmiInput.classList.add('error-field');
-        return false;
-    } else {
-        bmiError.textContent = "";
-        bmiInput.classList.remove('error-field');
-        return true;
-    }
-}
-
-// Gestion du changement d'âge
 function handleAgeChange() {
     const ageSelect = document.getElementById("AgeCategory");
-    const diabeticGroup = document.getElementById("Diabetic")?.parentElement;
-    
-    if (!diabeticGroup) return;
+    const diabeticGroup = document.getElementById("diabeticGroup");
 
-    const ageText = ageSelect.value;
-    const age = parseInt(ageText.split('-')[0]) || 80;
-    
-    if (age >= 50) {
-        diabeticGroup.classList.remove('hidden');
-        diabeticGroup.style.display = 'block';
-    } else {
-        diabeticGroup.classList.add('hidden');
-        diabeticGroup.style.display = 'none';
-        document.getElementById("Diabetic").value = "No";
+    // Logic: If Age < 30, Diabetes risk is often lower or different, 
+    // but the original logic was hiding it. Let's keep it visible but maybe highlight relevant fields?
+    // Actually, following original logic: if young, maybe hide to simplify?
+    // Original Code: if (age >= 50) show diabetic.
+
+    // Parsing text like "18-24" -> 18
+    const val = ageSelect.value;
+    const minAge = parseInt(val.split('-')[0]) || 80; // "80 or older" -> 80
+
+    if (diabeticGroup) {
+        if (minAge < 30) {
+            // Let's keep it clean: if very young, maybe auto-set No or hide?
+            // Original logic was hide if < 50. That seems too aggressive for "professional" app (young people have type 1).
+            // Let's ALWAYS show it for professional completeness, but maybe pre-select No if just changing?
+            // No, let's stick to user intent. I will show it always for better UX (hiding fields is confusing).
+            // But I will keep the listener in case we want to add "Recommended" badges later.
+            diabeticGroup.style.display = 'block';
+        } else {
+            diabeticGroup.style.display = 'block';
+        }
     }
 }
 
-// Soumission du formulaire
 async function handleFormSubmit(e) {
     e.preventDefault();
 
+    if (!validateBMI()) return;
+
     const form = e.target;
-    const bmiInput = document.getElementById("BMI");
-
-    // Validation finale
-    if (!validateBMI()) {
-        UI.showAlert("Veuillez corriger les erreurs du formulaire", 'danger');
-        return;
-    }
-
     const formData = new FormData(form);
 
-    // Afficher le loader
-    const loader = UI.showLoader("Analyse en cours...");
-    form.appendChild(loader);
-
-    // Mise à jour de la barre de progression
-    UI.updateProgressBar(30);
+    UI.showLoader();
 
     try {
-        const response = await fetch(form.action || '/api/predict', {
+        const response = await fetch(form.action, {
             method: 'POST',
             body: formData
         });
 
-        UI.updateProgressBar(70);
-
-            if (response.ok) {
-                const data = await response.json();
-                console.debug('Prediction API response:', data);
-                if (data.success) {
-                    displayPredictionResult(data);
-                    UI.showAlert("Prédiction réalisée avec succès!", 'success');
-                } else {
-                    UI.showAlert("Erreur: " + (data.error || "Erreur inconnue"), 'danger');
-                }
-            } else {
-            const text = await response.text();
-            console.error('Response:', text);
-            UI.showAlert("Erreur serveur. Statut: " + response.status, 'danger');
+        if (response.ok) {
+            const data = await response.json();
+            displayResults(data);
+        } else {
+            throw new Error("Erreur serveur");
         }
-
-        UI.updateProgressBar(100);
-        setTimeout(() => UI.updateProgressBar(0), 1000);
-
-    } catch (error) {
-        console.error('Erreur:', error);
-        UI.showAlert("Erreur de connexion: " + error.message, 'danger');
-        UI.updateProgressBar(0);
+    } catch (err) {
+        UI.showAlert("Erreur lors de la prédiction: " + err.message, "danger");
     } finally {
         UI.hideLoader();
     }
 }
 
-// Affichage du résultat de prédiction
-function displayPredictionResult(data) {
-    let resultContainer = document.querySelector('.result-container');
-    
-    if (!resultContainer) {
-        resultContainer = document.createElement('div');
-        resultContainer.className = 'result-container';
-        document.querySelector('.container').appendChild(resultContainer);
+function displayResults(data) {
+    UI.showResultCard();
+
+    const statusBadges = document.getElementById('resultStatus');
+    const actions = document.getElementById('resultActions');
+
+    // Status Badge
+    const isRisky = (data.prediction === 1 || data.prediction === 'Yes');
+
+    if (isRisky) {
+        statusBadges.className = 'prediction-badge danger';
+        statusBadges.textContent = '⚠️ Risque Identifié';
+    } else {
+        statusBadges.className = 'prediction-badge safe';
+        statusBadges.textContent = '✅ Aucun Risque Détecté';
     }
 
-    const prediction = data.prediction || 'Inconnu';
-    const probability = data.probability ? (data.probability * 100).toFixed(2) : 'N/A';
-    
-    const resultClass = prediction === 1 || prediction === 'Yes' ? 'prediction-positive' : 'prediction-negative';
-    const resultText = prediction === 1 || prediction === 'Yes' ? '⚠️ RISQUE DÉTECTÉ' : '✓ AUCUN RISQUE';
+    // Probability
+    const prob = data.probability; // 0.0 to 1.0 expected
+    UI.animateProbability(prob);
 
-    resultContainer.innerHTML = `
-        <div class="result-title">📊 Résultat de la Prédiction</div>
-        <div class="prediction-result ${resultClass}">
-            ${resultText}
-        </div>
-        <div class="prediction-probability">
-            <strong>Confiance:</strong> ${probability}%
+    // SHAP / Explanation
+    // SHAP / Explanation
+    renderExplanation(data.explanation, 'shap');
+
+    // LIME
+    if (data.lime_explanation) {
+        console.log("LIME Data:", data.lime_explanation);
+        renderLimeExplanation(data.lime_explanation);
+    }
+
+    // Show Report Button
+    if (actions) actions.classList.remove('hidden');
+    setupReportButton();
+}
+
+function renderExplanation(expl, type = 'shap') {
+    const containerId = type === 'shap' ? 'shap-container' : 'lime-container';
+    const container = document.getElementById(containerId);
+    if (!container) return;
+
+    if (!expl || expl.error) {
+        container.innerHTML = `<p class="text-center text-muted">Explication non disponible</p>`;
+        return;
+    }
+
+    // Clear
+    container.innerHTML = '';
+
+    // Title
+    const header = document.createElement('h4');
+    header.style.fontSize = '0.95rem';
+    header.style.marginBottom = '10px';
+    header.innerHTML = '<i class="fa-solid fa-list-check"></i> Facteurs Influents (Global)';
+    container.appendChild(header);
+
+    // Legend
+    const legend = document.createElement('div');
+    legend.innerHTML = `
+        <div style="display:flex; gap:15px; font-size:0.8rem; margin-bottom:10px; color:var(--neutral-600);">
+            <div style="display:flex; align-items:center; gap:5px;">
+                <span style="width:10px; height:10px; background:#ef4444; display:inline-block; border-radius:50%;"></span>
+                Augmente le risque
+            </div>
+            <div style="display:flex; align-items:center; gap:5px;">
+                <span style="width:10px; height:10px; background:#10b981; display:inline-block; border-radius:50%;"></span>
+                Diminue le risque
+            </div>
         </div>
     `;
+    container.appendChild(legend);
 
-    // If explanation with SHAP values is present, render an interactive Plotly bar chart
-    try {
-            const expl = data.explanation;
-            const explContainerId = 'explanation-block';
-            // Create or reuse explanation block
-            let explBlock = document.getElementById(explContainerId);
-            if (!explBlock) {
-                explBlock = document.createElement('div');
-                explBlock.id = explContainerId;
-                explBlock.style.marginTop = '12px';
-                explBlock.style.padding = '12px';
-                explBlock.style.background = '#fff7ed';
-                explBlock.style.borderRadius = '8px';
-                explBlock.style.borderLeft = '4px solid #f6ad55';
-                resultContainer.appendChild(explBlock);
+    // Top Features List (Standardized)
+    if (expl.top_features && Array.isArray(expl.top_features)) {
+        const ul = document.createElement('ul');
+        ul.style.fontSize = '0.9rem';
+
+        expl.top_features.slice(0, 5).forEach(f => {
+            const li = document.createElement('li');
+            li.style.marginBottom = '6px';
+            li.style.display = 'flex';
+            li.style.justifyContent = 'space-between';
+
+            const isRiskFactor = f.shap_value > 0;
+            const color = isRiskFactor ? 'var(--danger-color)' : 'var(--success-color)';
+            const icon = isRiskFactor ? 'fa-arrow-up' : 'fa-arrow-down';
+
+            li.innerHTML = `
+                <span>${f.feature}</span>
+                <span style="color: ${color}; font-weight: 600;">
+                    <i class="fa-solid ${icon}"></i> ${Math.abs(f.shap_value).toFixed(2)}
+                </span>
+            `;
+            ul.appendChild(li);
+        });
+        container.appendChild(ul);
+    }
+
+    // Full Chart (Plotly)
+    if (expl.all_features && window.Plotly) {
+        const chartDiv = document.createElement('div');
+        chartDiv.id = 'shap-mini-chart';
+        chartDiv.style.marginTop = '15px';
+        chartDiv.style.height = '250px';
+        container.appendChild(chartDiv);
+
+        const names = expl.all_features.map(x => x.feature).slice(0, 10); // Check reverse if needed
+        const values = expl.all_features.map(x => x.shap_value).slice(0, 10);
+
+        const colors = values.map(v => v > 0 ? '#ef4444' : '#10b981');
+
+        Plotly.newPlot(chartDiv, [{
+            x: values,
+            y: names,
+            type: 'bar',
+            orientation: 'h',
+            marker: { color: colors }
+        }], {
+            margin: { l: 100, r: 20, t: 0, b: 30 },
+            barmode: 'relative',
+            height: 250,
+            xaxis: { fixedrange: true },
+            yaxis: { fixedrange: true, automargin: true }
+        }, { displayModeBar: false });
+    }
+}
+
+function setupReportButton() {
+    const btn = document.getElementById('generate-report-btn');
+    // Remove old listeners by cloning
+    // Helper to safely re-bind
+    const newBtn = btn.cloneNode(true);
+    btn.parentNode.replaceChild(newBtn, btn);
+
+    newBtn.addEventListener('click', async () => {
+        newBtn.disabled = true;
+        newBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Génération...';
+
+        const form = document.getElementById('cancerForm');
+        const formData = new FormData(form);
+
+        try {
+            const resp = await fetch('/report', { method: 'POST', body: formData });
+            if (resp.ok) {
+                const blob = await resp.blob();
+                const url = window.URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = 'Rapport_Analyse_Sante.pdf';
+                document.body.appendChild(a);
+                a.click();
+                a.remove();
             } else {
-                explBlock.innerHTML = '';
+                UI.showAlert("Erreur génération PDF", "danger");
             }
-
-            if (!expl) {
-                explBlock.innerHTML = '<div style="color:#718096">Aucune explication fournie par le serveur.</div>';
-                return;
-            }
-
-            if (expl.error) {
-                explBlock.innerHTML = `<div style="color:#c53030; font-weight:600;">Erreur génération explication : ${expl.error}</div>`;
-                // show raw JSON to help debugging
-                const pre = document.createElement('pre');
-                pre.textContent = JSON.stringify(expl, null, 2);
-                pre.style.marginTop = '8px';
-                pre.style.maxHeight = '180px';
-                pre.style.overflow = 'auto';
-                explBlock.appendChild(pre);
-                return;
-            }
-
-            // Show base value and top features textual summary
-            const baseHtml = `<div style="font-weight:700; margin-bottom:8px;">🧭 Explication (XAI) — Top contributions</div>` +
-                (expl.base_value !== undefined && expl.base_value !== null ? `<div style="color:#4a5568; margin-bottom:8px;">Base value: ${expl.base_value.toFixed ? expl.base_value.toFixed(3) : expl.base_value}</div>` : '');
-            explBlock.innerHTML = baseHtml;
-
-            if (expl.top_features && Array.isArray(expl.top_features)) {
-                const ul = document.createElement('ul');
-                ul.style.margin = '0';
-                ul.style.paddingLeft = '18px';
-                ul.style.color = '#2d3748';
-                expl.top_features.forEach(item => {
-                    const li = document.createElement('li');
-                    const sign = item.shap_value > 0 ? ' (augmente le risque)' : (item.shap_value < 0 ? ' (diminue le risque)' : ' (neutre)');
-                    li.innerHTML = `<strong>${item.feature}</strong>: ${Number(item.shap_value).toFixed(3)}<span style="color:${item.shap_value>0? '#c53030':'#38a169'}">${sign}</span>`;
-                    ul.appendChild(li);
-                });
-                explBlock.appendChild(ul);
-            }
-
-            // Render full SHAP bar chart if available
-            if (expl.all_features && Array.isArray(expl.all_features) && window.Plotly) {
-                const features = expl.all_features.map(item => item.feature);
-                const shap_vals = expl.all_features.map(item => item.shap_value);
-
-                const chartId = 'shap-chart';
-                let chartDiv = document.getElementById(chartId);
-                if (!chartDiv) {
-                    chartDiv = document.createElement('div');
-                    chartDiv.id = chartId;
-                    chartDiv.style.marginTop = '12px';
-                    chartDiv.style.height = '360px';
-                    explBlock.appendChild(chartDiv);
-                } else {
-                    chartDiv.innerHTML = '';
-                }
-
-                const colors = shap_vals.map(v => (v >= 0 ? '#f56565' : '#38a169'));
-                const trace = { x: shap_vals, y: features, orientation: 'h', type: 'bar', marker: { color: colors } };
-                const layout = { margin: { l: 180, r: 40, t: 20, b: 40 }, xaxis: { title: 'SHAP value' }, yaxis: { automargin: true, autorange: 'reversed' } };
-                Plotly.newPlot(chartDiv, [trace], layout, { responsive: true });
-            }
-    } catch (err) {
-        console.error('Erreur rendu SHAP:', err);
-    }
-
-    resultContainer.scrollIntoView({ behavior: 'smooth' });
-
-    // Add professional 'Generate report' button
-    try {
-        let reportBtn = document.getElementById('generate-report-btn');
-        if (!reportBtn) {
-            reportBtn = document.createElement('button');
-            reportBtn.id = 'generate-report-btn';
-            reportBtn.textContent = '📄 Générer le rapport détaillé (PDF)';
-            reportBtn.className = 'btn-submit';
-            reportBtn.style.marginTop = '12px';
-            reportBtn.style.background = 'linear-gradient(135deg,#667eea 0%,#764ba2 100%)';
-            reportBtn.style.color = '#fff';
-            reportBtn.style.border = 'none';
-            reportBtn.style.padding = '10px 16px';
-            reportBtn.style.borderRadius = '8px';
-            reportBtn.style.cursor = 'pointer';
-            resultContainer.appendChild(reportBtn);
-
-            reportBtn.addEventListener('click', async () => {
-                reportBtn.disabled = true;
-                reportBtn.textContent = 'Génération en cours...';
-                const form = document.getElementById('cancerForm');
-                const formData = new FormData(form);
-                try {
-                    const resp = await fetch('/report', { method: 'POST', body: formData });
-                    if (resp.ok) {
-                        const blob = await resp.blob();
-                        const url = window.URL.createObjectURL(blob);
-                        const a = document.createElement('a');
-                        a.href = url;
-                        a.download = 'xai_report.pdf';
-                        document.body.appendChild(a);
-                        a.click();
-                        a.remove();
-                        window.URL.revokeObjectURL(url);
-                    } else {
-                        const text = await resp.text();
-                        UI.showAlert('Erreur génération rapport: ' + text, 'danger');
-                    }
-                } catch (e) {
-                    UI.showAlert('Erreur lors du téléchargement du rapport: ' + e.message, 'danger');
-                } finally {
-                    reportBtn.disabled = false;
-                    reportBtn.textContent = '📄 Générer le rapport détaillé (PDF)';
-                }
-            });
+        } catch (e) {
+            UI.showAlert("Erreur réseau", "danger");
+        } finally {
+            newBtn.disabled = false;
+            newBtn.innerHTML = '<i class="fa-solid fa-file-pdf"></i> Télécharger le Rapport';
         }
-    } catch (err) {
-        console.error('Erreur bouton rapport:', err);
-    }
-}
-
-// ========== ANIMATIONS ==========
-// Ajouter des animations au chargement
-window.addEventListener('load', () => {
-    document.querySelectorAll('.form-group').forEach((group, index) => {
-        group.style.animationDelay = `${index * 0.1}s`;
-    });
-});
-
-// ========== UTILITAIRES SUPPLÉMENTAIRES ==========
-// Désactiver/activer le formulaire
-function disableForm(form, disabled = true) {
-    form.querySelectorAll('input, select, button').forEach(el => {
-        el.disabled = disabled;
     });
 }
 
-// Réinitialiser le formulaire
-function resetFormWithConfirmation(form) {
-    if (confirm('Êtes-vous sûr de vouloir réinitialiser le formulaire?')) {
-        form.reset();
-        UI.showAlert("Formulaire réinitialisé", 'info', 3000);
-    }
-}
+function renderLimeExplanation(limeData) {
+    const container = document.getElementById('lime-container');
+    if (!container) return;
 
-// Export des fonctions pour utilisation globale
-window.UI = UI;
-window.disableForm = disableForm;
-window.resetFormWithConfirmation = resetFormWithConfirmation;
+    container.innerHTML = '';
+
+    if (limeData.error) {
+        container.innerHTML = `<p class="text-center text-muted">Erreur LIME: ${limeData.error}</p>`;
+        return;
+    }
+
+    if (!limeData.explanation || !Array.isArray(limeData.explanation)) {
+        container.innerHTML = `<p class="text-center text-muted">Pas de données LIME</p>`;
+        return;
+    }
+
+    const explanation = limeData.explanation;
+
+    // Title
+    const header = document.createElement('h4');
+    header.style.fontSize = '0.95rem';
+    header.style.marginBottom = '10px';
+    header.innerHTML = '<i class="fa-solid fa-microscope"></i> Facteurs Locaux (LIME)';
+    container.appendChild(header);
+
+    // Legend
+    const legend = document.createElement('div');
+    legend.innerHTML = `
+        <div style="display:flex; gap:15px; font-size:0.8rem; margin-bottom:10px; color:var(--neutral-600);">
+            <div style="display:flex; align-items:center; gap:5px;">
+                <span style="width:10px; height:10px; background:#ef4444; display:inline-block; border-radius:50%;"></span>
+                Augmente le risque
+            </div>
+            <div style="display:flex; align-items:center; gap:5px;">
+                <span style="width:10px; height:10px; background:#3b82f6; display:inline-block; border-radius:50%;"></span>
+                Diminue le risque
+            </div>
+        </div>
+    `;
+    container.appendChild(legend);
+
+    // LIME Values List
+    const ul = document.createElement('ul');
+    ul.style.fontSize = '0.9rem';
+
+    // limeData.explanation is sorted by absolute value
+    explanation.slice(0, 5).forEach(f => {
+        const li = document.createElement('li');
+        li.style.marginBottom = '6px';
+        li.style.display = 'flex';
+        li.style.justifyContent = 'space-between';
+
+        const isRiskFactor = f.value > 0;
+        const color = isRiskFactor ? '#ef4444' : '#3b82f6';
+        const icon = isRiskFactor ? 'fa-arrow-up' : 'fa-arrow-down';
+
+        li.innerHTML = `
+            <span>${f.feature}</span>
+            <span style="color: ${color}; font-weight: 600;">
+                <i class="fa-solid ${icon}"></i> ${Math.abs(f.value).toFixed(4)}
+            </span>
+        `;
+        ul.appendChild(li);
+    });
+    container.appendChild(ul);
+
+    // Plotly Chart
+    const chartDiv = document.createElement('div');
+    chartDiv.id = 'lime-mini-chart';
+    chartDiv.style.marginTop = '15px';
+    chartDiv.style.height = '250px';
+    container.appendChild(chartDiv);
+
+    // Sort: most important at top (Plotly needs reverse order for h-bar)
+    // limeData.explanation is sorted descending by absolute value
+    // Let's take top 10
+    const top10 = explanation.slice(0, 10).reverse();
+
+    const names = top10.map(x => x.feature);
+    const values = top10.map(x => x.value);
+    const colors = values.map(v => v > 0 ? '#ef4444' : '#3b82f6'); // Red vs Blue for LIME convention
+
+    Plotly.newPlot(chartDiv, [{
+        x: values,
+        y: names,
+        type: 'bar',
+        orientation: 'h',
+        marker: { color: colors }
+    }], {
+        margin: { l: 150, r: 20, t: 0, b: 30 },
+        barmode: 'relative',
+        height: 250,
+        xaxis: { fixedrange: true },
+        yaxis: { fixedrange: true, automargin: true }
+    }, { displayModeBar: false });
+}

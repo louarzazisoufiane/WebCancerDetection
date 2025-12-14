@@ -2,51 +2,55 @@
 
 :root[data-theme="light"],
 :root {
-    --primary-color: #667eea;
-    --secondary-color: #764ba2;
-    --success-color: #48bb78;
-    --danger-color: #f56565;
-    --warning-color: #ed8936;
-    --info-color: #4299e1;
-    --light-bg: #f7fafc;
-    --dark-text: #2d3748;
-    --border-color: #e2e8f0;
-    --gray-100: #f7fafc;
-    --gray-200: #edf2f7;
-    --gray-300: #e2e8f0;
-    --gray-400: #cbd5e0;
-    --gray-500: #a0aec0;
-    --gray-600: #718096;
-    --gray-700: #4a5568;
-    --gray-800: #2d3748;
+    --primary-color: #FF6B35;
+    --secondary-color: #FF8C42;
+    --primary-dark: #E55A2B;
+    --primary-light: #FFA07A;
+    --success-color: #10B981;
+    --danger-color: #EF4444;
+    --warning-color: #F59E0B;
+    --info-color: #3B82F6;
+    --light-bg: #FFF8F5;
+    --dark-text: #1F2937;
+    --border-color: #FED7AA;
+    --gray-100: #FFF8F5;
+    --gray-200: #FFE5D9;
+    --gray-300: #FED7AA;
+    --gray-400: #FDB87A;
+    --gray-500: #FC9A4A;
+    --gray-600: #E55A2B;
+    --gray-700: #CC4A1F;
+    --gray-800: #1F2937;
 }
 
 /* ========== THÈME SOMBRE ========== */
 
 :root[data-theme="dark"] {
-    --primary-color: #7c8ef8;
-    --secondary-color: #8b5cf6;
-    --success-color: #52c41a;
-    --danger-color: #ff7875;
-    --warning-color: #ffa940;
-    --info-color: #5b9eea;
-    --light-bg: #1f2937;
-    --dark-text: #f3f4f6;
-    --border-color: #374151;
-    --gray-100: #1f2937;
-    --gray-200: #111827;
-    --gray-300: #374151;
-    --gray-400: #4b5563;
-    --gray-500: #6b7280;
-    --gray-600: #9ca3af;
-    --gray-700: #d1d5db;
-    --gray-800: #f3f4f6;
+    --primary-color: #FF8C42;
+    --secondary-color: #FFA07A;
+    --primary-dark: #FF6B35;
+    --primary-light: #FFB84D;
+    --success-color: #34D399;
+    --danger-color: #F87171;
+    --warning-color: #FBBF24;
+    --info-color: #60A5FA;
+    --light-bg: #1F1A17;
+    --dark-text: #FEF3E8;
+    --border-color: #4A2C1A;
+    --gray-100: #1F1A17;
+    --gray-200: #2A1F1A;
+    --gray-300: #4A2C1A;
+    --gray-400: #6B3D2A;
+    --gray-500: #8B4D3A;
+    --gray-600: #AB5D4A;
+    --gray-700: #D1A68A;
+    --gray-800: #FEF3E8;
 }
 
 /* ========== STYLES GÉNÉRAUX POUR THÈME SOMBRE ========== */
 
 [data-theme="dark"] body {
-    background: linear-gradient(135deg, #1f2937 0%, #111827 100%);
+    background: linear-gradient(135deg, #2A1F1A 0%, #1F1A17 50%, #4A2C1A 100%);
     color: var(--dark-text);
 }
 

@@ -4,26 +4,26 @@ class ThemeManager {
     constructor() {
         this.themes = {
             light: {
-                primary: '#667eea',
-                secondary: '#764ba2',
-                success: '#48bb78',
-                danger: '#f56565',
-                warning: '#ed8936',
-                info: '#4299e1',
-                bg: '#f7fafc',
-                text: '#2d3748',
-                border: '#e2e8f0'
+                primary: '#FF6B35',
+                secondary: '#FF8C42',
+                success: '#10B981',
+                danger: '#EF4444',
+                warning: '#F59E0B',
+                info: '#3B82F6',
+                bg: '#FFF8F5',
+                text: '#1F2937',
+                border: '#FED7AA'
             },
             dark: {
-                primary: '#7c8ef8',
-                secondary: '#8b5cf6',
-                success: '#52c41a',
-                danger: '#ff7875',
-                warning: '#ffa940',
-                info: '#5b9eea',
-                bg: '#1f2937',
-                text: '#f3f4f6',
-                border: '#374151'
+                primary: '#FF8C42',
+                secondary: '#FFA07A',
+                success: '#34D399',
+                danger: '#F87171',
+                warning: '#FBBF24',
+                info: '#60A5FA',
+                bg: '#1F1A17',
+                text: '#FEF3E8',
+                border: '#4A2C1A'
             }
         };
 

@@ -1,0 +1,16 @@
+# Environnements virtuels
+venv/
+venv311/
+.env/
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# ML / Data
+*.h5
+*.pt
+*.pth
+*.onnx

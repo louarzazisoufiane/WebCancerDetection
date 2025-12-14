@@ -1,0 +1,280 @@
+<!DOCTYPE html>
+<html lang="fr">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Analyse Image | SkinCheck Vision</title>
+    <link rel="icon"
+        href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🛡️</text></svg>">
+
+    <!-- Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Main Style -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+
+    <style>
+        .upload-area {
+            border: 2px dashed var(--neutral-300);
+            border-radius: var(--radius-lg);
+            padding: 3rem;
+            text-align: center;
+            transition: var(--transition);
+            cursor: pointer;
+            background: var(--neutral-50);
+            position: relative;
+        }
+
+        .upload-area:hover,
+        .upload-area.dragover {
+            border-color: var(--primary-color);
+            background: var(--primary-light);
+        }
+
+        .upload-icon {
+            font-size: 3rem;
+            color: var(--neutral-400);
+            margin-bottom: 1rem;
+        }
+
+        .preview-container {
+            margin-top: 2rem;
+            display: none;
+            text-align: center;
+        }
+
+        .preview-image {
+            max-width: 300px;
+            max-height: 300px;
+            border-radius: var(--radius-md);
+            box-shadow: var(--shadow-md);
+            border: 4px solid white;
+        }
+
+        .result-overlay {
+            margin-top: 1.5rem;
+            display: none;
+            animation: fadeIn 0.5s ease-out;
+        }
+
+        .prediction-gauge {
+            width: 100%;
+            height: 20px;
+            background: var(--neutral-200);
+            border-radius: 10px;
+            overflow: hidden;
+            margin-top: 10px;
+        }
+
+        .gauge-fill {
+            height: 100%;
+            background: linear-gradient(90deg, var(--success-color), var(--danger-color));
+            width: 0%;
+            transition: width 1s ease-out;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="app-container">
+        <!-- Header -->
+        <header class="main-header">
+            <div class="brand">
+                <a href="/" class="brand-text"
+                    style="display: flex; align-items: center; gap: 0.75rem; text-decoration: none;">
+                    <i class="fa-solid fa-camera-retro brand-icon"></i>
+                    <div class="brand-text">
+                        <h1>SkinCheck Vision</h1>
+                        <p>Module d'analyse d'images dermoscopiques</p>
+                    </div>
+                </a>
+            </div>
+            <div class="header-actions">
+                <a href="/" class="btn btn-secondary"><i class="fa-solid fa-clipboard-list"></i> Formulaire</a>
+                <a href="/dashboard/" class="btn btn-secondary"><i class="fa-solid fa-chart-pie"></i> Dashboard</a>
+            </div>
+        </header>
+
+        <main class="content-grid" style="grid-template-columns: 1fr; max-width: 800px; margin: 0 auto;">
+
+            <div class="card card-accent-primary">
+                <div class="card-header">
+                    <h2 class="card-title"><i class="fa-solid fa-upload"></i> Téléverser une Image</h2>
+                    <p>Formats acceptés : JPG, PNG. L'image sera analysée pour détecter les signes de malignité.</p>
+                </div>
+
+                <div class="card-body">
+                    <div class="upload-area" id="dropZone">
+                        <i class="fa-solid fa-cloud-arrow-up upload-icon"></i>
+                        <h3>Glissez-déposez une image ici</h3>
+                        <p style="color: var(--neutral-500);">ou cliquez pour sélectionner</p>
+                        <input type="file" id="fileInput" accept="image/*" style="display: none;">
+                    </div>
+
+                    <div class="preview-container" id="previewContainer">
+                        <img id="imagePreview" class="preview-image" src="#" alt="Aperçu">
+
+                        <div id="loadingIndicator" style="display: none; margin-top: 1rem;">
+                            <i class="fa-solid fa-circle-notch fa-spin"
+                                style="font-size: 2rem; color: var(--primary-color);"></i>
+                            <p>Analyse en cours...</p>
+                        </div>
+
+                        <div class="result-overlay" id="resultOverlay">
+                            <div class="prediction-badge" id="resultBadge"
+                                style="font-size: 1.2rem; padding: 0.75rem 1.5rem;">Result</div>
+
+                            <div class="probability-meter" style="width: 120px; height: 120px; margin: 0 auto;">
+                                <svg viewBox="0 0 36 36" class="circular-chart">
+                                    <path class="circle-bg"
+                                        d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831">
+                                    </path>
+                                    <path id="probCircle" class="circle" stroke-dasharray="0, 100"
+                                        d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
+                                        stroke="#10b981"></path>
+                                    <text x="18" y="20.35" class="percentage" id="probText"
+                                        style="font-size: 0.6rem;">0%</text>
+                                </svg>
+                                <div class="text-center"
+                                    style="margin-top: -5px; font-size: 0.85rem; color: var(--neutral-500); text-align: center; font-weight: 500;">
+                                    Prob. Malignité</div>
+                            </div>
+                        </div>
+
+                        <button class="btn btn-secondary" onclick="resetUpload()" style="margin-top: 2rem;">
+                            <i class="fa-solid fa-rotate-left"></i> Nouvelle Analyse
+                        </button>
+                    </div>
+                </div>
+            </div>
+    </div>
+
+    </main>
+    </div>
+
+    <script>
+        const dropZone = document.getElementById('dropZone');
+        const fileInput = document.getElementById('fileInput');
+        const previewContainer = document.getElementById('previewContainer');
+        const imagePreview = document.getElementById('imagePreview');
+        const uploadArea = document.querySelector('.upload-area');
+        const loadingIndicator = document.getElementById('loadingIndicator');
+        const resultOverlay = document.getElementById('resultOverlay');
+
+        // Drag & Drop events
+        dropZone.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            dropZone.classList.add('dragover');
+        });
+
+        dropZone.addEventListener('dragleave', () => {
+            dropZone.classList.remove('dragover');
+        });
+
+        dropZone.addEventListener('drop', (e) => {
+            e.preventDefault();
+            dropZone.classList.remove('dragover');
+            const files = e.dataTransfer.files;
+            if (files.length > 0) handleFile(files[0]);
+        });
+
+        dropZone.addEventListener('click', () => fileInput.click());
+
+        fileInput.addEventListener('change', (e) => {
+            if (e.target.files.length > 0) handleFile(e.target.files[0]);
+        });
+
+        function handleFile(file) {
+            if (!file.type.startsWith('image/')) {
+                alert('Veuillez sélectionner une image valide.');
+                return;
+            }
+
+            // Show Preview
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                imagePreview.src = e.target.result;
+                uploadArea.style.display = 'none';
+                previewContainer.style.display = 'block';
+                performAnalysis(file);
+            };
+            reader.readAsDataURL(file);
+        }
+
+        async function performAnalysis(file) {
+            loadingIndicator.style.display = 'block';
+            resultOverlay.style.display = 'none';
+
+            const formData = new FormData();
+            formData.append('file', file);
+
+            try {
+                const response = await fetch('/api/predict-image', {
+                    method: 'POST',
+                    body: formData
+                });
+
+                const data = await response.json();
+
+                loadingIndicator.style.display = 'none';
+
+                if (data.success) {
+                    showResult(data.result);
+                } else {
+                    alert('Erreur: ' + data.error);
+                    resetUpload();
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                loadingIndicator.style.display = 'none';
+                alert('Erreur de communication avec le serveur.');
+                resetUpload();
+            }
+        }
+
+        function showResult(result) {
+            resultOverlay.style.display = 'block';
+            const badge = document.getElementById('resultBadge');
+            const probCircle = document.getElementById('probCircle');
+            const probText = document.getElementById('probText');
+
+            let probMalignant = result.malignancy_probability_percent;
+            let probDisplay;
+
+            if (probMalignant < 0.01 && probMalignant > 0) {
+                probDisplay = "< 0.01";
+            } else {
+                probDisplay = probMalignant.toFixed(2);
+            }
+
+            if (result.prediction === 'Malignant') {
+                badge.className = 'prediction-badge danger';
+                badge.innerHTML = '<i class="fa-solid fa-triangle-exclamation"></i> Détection : Maligne';
+                probCircle.setAttribute('stroke', 'var(--danger-color)');
+            } else {
+                badge.className = 'prediction-badge safe';
+                badge.innerHTML = '<i class="fa-solid fa-shield-heart"></i> Détection : Bénigne';
+                probCircle.setAttribute('stroke', 'var(--success-color)');
+            }
+
+            // Animate circle
+            setTimeout(() => {
+                probCircle.setAttribute('stroke-dasharray', `${probMalignant}, 100`);
+            }, 100);
+
+            probText.textContent = probDisplay + '%';
+        }
+
+        function resetUpload() {
+            fileInput.value = '';
+            uploadArea.style.display = 'block';
+            previewContainer.style.display = 'none';
+            resultOverlay.style.display = 'none';
+        }
+    </script>
+</body>
+
+</html>

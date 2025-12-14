@@ -73,10 +73,10 @@
 
 @keyframes glow {
     0%, 100% {
-        box-shadow: 0 0 5px rgba(102, 126, 234, 0.5);
+        box-shadow: 0 0 5px rgba(255, 107, 53, 0.5);
     }
     50% {
-        box-shadow: 0 0 20px rgba(102, 126, 234, 0.8);
+        box-shadow: 0 0 20px rgba(255, 107, 53, 0.8);
     }
 }
 
@@ -169,7 +169,7 @@
 
 /* Gradient animé */
 .gradient-animated {
-    background: linear-gradient(-45deg, #667eea, #764ba2, #f093fb, #4299e1);
+    background: linear-gradient(-45deg, #FF6B35, #FF8C42, #FFA07A, #FFB84D);
     background-size: 400% 400%;
     animation: gradient 15s ease infinite;
 }
@@ -192,7 +192,7 @@
 }
 
 .shadow-animated:hover {
-    box-shadow: 0 20px 40px rgba(102, 126, 234, 0.3);
+    box-shadow: 0 20px 40px rgba(255, 107, 53, 0.3);
 }
 
 /* Bordure animée */
@@ -243,7 +243,7 @@
 /* ========== STYLES DE TEXTE ========== */
 
 .text-gradient {
-    background: linear-gradient(135deg, #667eea, #764ba2);
+    background: linear-gradient(135deg, #FF6B35, #FF8C42);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
@@ -297,8 +297,8 @@
     display: inline-block;
     width: 40px;
     height: 40px;
-    border: 4px solid rgba(102, 126, 234, 0.2);
-    border-top: 4px solid #667eea;
+    border: 4px solid rgba(255, 107, 53, 0.2);
+    border-top: 4px solid #FF6B35;
     border-radius: 50%;
     animation: spin 1s linear infinite;
 }
@@ -317,7 +317,7 @@
     width: 10px;
     height: 10px;
     border-radius: 50%;
-    background: #667eea;
+    background: #FF6B35;
     animation: bounce-dot 1.4s infinite ease-in-out both;
 }
 
@@ -381,9 +381,9 @@
 
 .form-control input:focus,
 .form-control select:focus {
-    border-color: #667eea;
+    border-color: #FF6B35;
     background-color: white;
-    box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+    box-shadow: 0 0 0 3px rgba(255, 107, 53, 0.15);
     outline: none;
 }
 
@@ -517,13 +517,13 @@
 }
 
 .breadcrumb a {
-    color: #667eea;
+    color: #FF6B35;
     text-decoration: none;
     transition: color 0.3s;
 }
 
 .breadcrumb a:hover {
-    color: #764ba2;
+    color: #FF8C42;
     text-decoration: underline;
 }
 
