@@ -287,7 +287,6 @@ def serve_certificate(filename):
 @app.route('/dashboard')
 def redirect_dashboard():
     return redirect('/dashboard/')
-
-# Page d'accueil Flask
 if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=5000, debug=True)
+    # debug=False et use_reloader=False sont obligatoires ici
+    app.run(host='0.0.0.0', port=5000, debug=False, use_reloader=False)
